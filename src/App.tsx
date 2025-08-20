@@ -49,6 +49,7 @@ function App() {
             <News />
             <Videos />
             <Schedule />
+            <Donations />
           </>
         );
       case 'schedule':
@@ -65,6 +66,7 @@ function App() {
             <News />
             <Videos />
             <Schedule />
+            <Donations />
           </>
         );
     }
