@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos para bordas do navegador em preto */
+html, body {
+  background-color: #000000;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  background-color: #000000;
+  min-height: 100vh;
+}
