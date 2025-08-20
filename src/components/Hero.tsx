@@ -27,7 +27,7 @@ const Hero: React.FC = () => {
           }}
         >
           <source
-            src="/video/bg-n-hd.mp4"
+            src="https://res.cloudinary.com/dwsqvtil1/video/upload/v1755725442/bg-n-hd_t17qjg.mp4"
             type="video/mp4"
           />
           {/* Fallback para navegadores que não suportam vídeo */}
