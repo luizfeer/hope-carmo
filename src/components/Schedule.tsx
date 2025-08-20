@@ -5,7 +5,7 @@ import { generateGoogleCalendarUrl, hasSignificantDuration } from '../services/c
 import LoadingSpinner from './LoadingSpinner';
 
 const Schedule: React.FC = () => {
-  const { events, loading, error, refetch } = useCalendarEvents();
+  const { events, loading, error, refetch, lastUpdated } = useCalendarEvents();
 
   return (
     <section className="py-32 bg-gradient-to-b from-cyan-950/60  via-black/90 to-black">
@@ -20,8 +20,13 @@ const Schedule: React.FC = () => {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          {/* Botão de atualizar */}
-          <div className="flex justify-end mb-6">
+          {/* Botão de atualizar e status */}
+          <div className="flex justify-between items-center mb-6">
+            {lastUpdated && (
+              <p className="text-emerald-100/60 text-sm">
+                Última atualização: {lastUpdated.toLocaleString('pt-BR')}
+              </p>
+            )}
             <button
               onClick={refetch}
               disabled={loading}

@@ -7,21 +7,29 @@ interface UseCalendarEventsReturn {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  lastUpdated: Date | null;
 }
 
 export function useCalendarEvents(): UseCalendarEventsReturn {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Buscando eventos do calendário...');
+      
       const calendarEvents = await fetchCalendarEvents();
       setEvents(calendarEvents);
+      setLastUpdated(new Date());
+      
+      console.log(`Eventos carregados com sucesso: ${calendarEvents.length} eventos encontrados`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar eventos');
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar eventos';
+      setError(errorMessage);
       console.error('Erro no hook useCalendarEvents:', err);
     } finally {
       setLoading(false);
@@ -36,6 +44,7 @@ export function useCalendarEvents(): UseCalendarEventsReturn {
     events,
     loading,
     error,
-    refetch: fetchEvents
+    refetch: fetchEvents,
+    lastUpdated
   };
 }

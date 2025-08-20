@@ -3,7 +3,6 @@ import { CalendarEvent, ICalEvent } from '../types/calendar';
 // URLs para buscar o iCal
 const ICAL_URL = 'https://calendar.google.com/calendar/ical/53938eddd91473d2c5bcd0f645b0ff4a84190c7b461850eeab5c4ed1df7c0e91%40group.calendar.google.com/public/basic.ics';
 const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-const LOCAL_PROXY = '/api/ical/calendar/ical/53938eddd91473d2c5bcd0f645b0ff4a84190c7b461850eeab5c4ed1df7c0e91%40group.calendar.google.com/public/basic.ics';
 
 // Função para fazer parse do iCal
 function parseICal(icalData: string): ICalEvent[] {
@@ -251,19 +250,19 @@ function convertToCalendarEvent(icalEvent: ICalEvent, startDate: Date, endDate: 
 // Função para tentar buscar dados do iCal usando diferentes métodos
 async function fetchICalData(): Promise<string> {
   const methods = [
-    // Método 1: Proxy local do Vite
-    () => fetch(LOCAL_PROXY),
-    // Método 2: Proxy CORS externo
-    () => fetch(`${CORS_PROXY}${encodeURIComponent(ICAL_URL)}`),
-    // Método 3: Tentativa direta (pode falhar por CORS)
-    () => fetch(ICAL_URL)
+    // Método 1: Tentativa direta (pode funcionar em alguns navegadores/servidores)
+    () => fetch(ICAL_URL),
+    // Método 2: Proxy CORS externo (fallback)
+    () => fetch(`${CORS_PROXY}${encodeURIComponent(ICAL_URL)}`)
   ];
 
   for (const method of methods) {
     try {
       const response = await method();
       if (response.ok) {
-        return await response.text();
+        const data = await response.text();
+        console.log('Dados do iCal obtidos com sucesso');
+        return data;
       }
     } catch (error) {
       console.warn('Método de busca falhou, tentando próximo...', error);
@@ -271,7 +270,7 @@ async function fetchICalData(): Promise<string> {
     }
   }
   
-  throw new Error('Todos os métodos de busca falharam');
+  throw new Error('Não foi possível acessar o calendário. Verifique sua conexão com a internet.');
 }
 
 // Função para verificar se o evento tem duração significativa
