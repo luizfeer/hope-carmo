@@ -12,7 +12,7 @@ const News: React.FC = () => {
       link: 'https://drive.google.com/drive/folders/1SAyFLzKGYccdXTD-sbOBedC97mfdlwVN'
     },
     {
-      title: 'Reprotagem Onda Sul do Intensivão Hope Carmo 2025',
+      title: 'Reportagem Onda Sul do Intensivão Hope Carmo 2025',
       excerpt: 'Juventude em movimento: HOPE leva esperança e lota auditório em Carmo do Rio Claro',
       date: '03/08/2025',
       image: '/img/thumb1.webp',
