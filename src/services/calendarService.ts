@@ -4,6 +4,10 @@ import { CalendarEvent, ICalEvent } from '../types/calendar';
 const ICAL_URL = 'https://calendar.google.com/calendar/ical/53938eddd91473d2c5bcd0f645b0ff4a84190c7b461850eeab5c4ed1df7c0e91%40group.calendar.google.com/public/basic.ics';
 const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
+// Cache simples para evitar múltiplas chamadas
+let cacheData: string | null = null;
+let cachePromise: Promise<string> | null = null;
+
 // Função para fazer parse do iCal
 function parseICal(icalData: string): ICalEvent[] {
   const events: ICalEvent[] = [];
@@ -82,19 +86,19 @@ function parseICalDate(dateStr: string): Date {
       const minute = parseInt(cleanDateStr.substring(11, 13));
       const second = parseInt(cleanDateStr.substring(13, 15));
       
-      // Validar se os valores são válidos
-      if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
-        throw new Error('Valores de data inválidos');
-      }
-      
-      // Criar data usando UTC
-      const date = new Date(Date.UTC(year, month, day, hour, minute, second));
-      
-      if (isNaN(date.getTime())) {
-        throw new Error('Data UTC inválida criada');
-      }
-      
-      return date;
+             // Validar se os valores são válidos
+       if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
+         throw new Error('Valores de data inválidos');
+       }
+       
+       // Criar data usando UTC
+       const date = new Date(Date.UTC(year, month, day, hour, minute, second));
+       
+       if (isNaN(date.getTime())) {
+         throw new Error('Data UTC inválida criada');
+       }
+       
+       return date;
     } else if (cleanDateStr.includes('T')) {
       // Formato: 20250822T200000 (com T, sem Z)
       const year = parseInt(cleanDateStr.substring(0, 4));
@@ -104,38 +108,38 @@ function parseICalDate(dateStr: string): Date {
       const minute = parseInt(cleanDateStr.substring(11, 13));
       const second = parseInt(cleanDateStr.substring(13, 15));
       
-      // Validar se os valores são válidos
-      if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
-        throw new Error('Valores de data inválidos');
-      }
-      
-      // Criar data local
-      const date = new Date(year, month, day, hour, minute, second);
-      
-      if (isNaN(date.getTime())) {
-        throw new Error('Data local inválida criada');
-      }
-      
-      return date;
+             // Validar se os valores são válidos
+       if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
+         throw new Error('Valores de data inválidos');
+       }
+       
+       // Criar data local
+       const date = new Date(year, month, day, hour, minute, second);
+       
+       if (isNaN(date.getTime())) {
+         throw new Error('Data local inválida criada');
+       }
+       
+       return date;
     } else {
       // Formato: 20251119 (apenas data, sem hora)
       const year = parseInt(cleanDateStr.substring(0, 4));
       const month = parseInt(cleanDateStr.substring(4, 6)) - 1;
       const day = parseInt(cleanDateStr.substring(6, 8));
       
-      // Validar se os valores são válidos
-      if (isNaN(year) || isNaN(month) || isNaN(day)) {
-        throw new Error('Valores de data inválidos');
-      }
-      
-      // Criar data local (meia-noite)
-      const date = new Date(year, month, day, 0, 0, 0);
-      
-      if (isNaN(date.getTime())) {
-        throw new Error('Data inválida criada');
-      }
-      
-      return date;
+             // Validar se os valores são válidos
+       if (isNaN(year) || isNaN(month) || isNaN(day)) {
+         throw new Error('Valores de data inválidos');
+       }
+       
+       // Criar data local (meia-noite)
+       const date = new Date(year, month, day, 0, 0, 0);
+       
+       if (isNaN(date.getTime())) {
+         throw new Error('Data inválida criada');
+       }
+       
+       return date;
     }
   } catch (error) {
     console.error('Erro ao fazer parse da data:', dateStr, error);
@@ -149,6 +153,8 @@ function generateRecurringEvents(event: ICalEvent, monthsAhead: number = 3): Cal
   const events: CalendarEvent[] = [];
   const startDate = parseICalDate(event.dtstart);
   const endDate = parseICalDate(event.dtend);
+  
+  
   
   if (!event.rrule) {
     // Evento único
@@ -170,7 +176,33 @@ function generateRecurringEvents(event: ICalEvent, monthsAhead: number = 3): Cal
       };
       
       const targetDay = dayMap[dayOfWeek];
-      const currentDate = new Date(startDate);
+      const now = new Date();
+      
+      // Encontrar a próxima ocorrência do evento
+      let currentDate = new Date(now);
+      
+             // Se a data original já passou, começar a partir de hoje
+       if (startDate < now) {
+         // Encontrar a próxima sexta-feira a partir de hoje
+         const daysUntilTarget = (targetDay - currentDate.getDay() + 7) % 7;
+         
+         if (daysUntilTarget === 0) {
+           // Hoje já é o dia alvo, mas vamos para a próxima semana
+           currentDate.setDate(currentDate.getDate() + 7);
+         } else {
+           currentDate.setDate(currentDate.getDate() + daysUntilTarget);
+         }
+       } else {
+         // A data original ainda não passou, usar ela como base
+         currentDate = new Date(startDate);
+         
+         // Se a data original não é o dia correto da semana, encontrar o próximo
+         if (currentDate.getDay() !== targetDay) {
+           const daysUntilTarget = (targetDay - currentDate.getDay() + 7) % 7;
+           currentDate.setDate(currentDate.getDate() + daysUntilTarget);
+         }
+       }
+      
       const endLimit = new Date();
       endLimit.setMonth(endLimit.getMonth() + monthsAhead);
       
@@ -178,9 +210,11 @@ function generateRecurringEvents(event: ICalEvent, monthsAhead: number = 3): Cal
       const maxRecurringEvents = 2; // Limitar a 2 eventos recorrentes
       
       while (currentDate <= endLimit && eventCount < maxRecurringEvents) {
+        // Verificar se a data atual é o dia correto da semana
         if (currentDate.getDay() === targetDay) {
           const eventEndDate = new Date(currentDate);
           eventEndDate.setHours(endDate.getHours(), endDate.getMinutes(), endDate.getSeconds());
+          
           
           const calendarEvent = convertToCalendarEvent(event, currentDate, eventEndDate);
           if (calendarEvent) {
@@ -188,6 +222,8 @@ function generateRecurringEvents(event: ICalEvent, monthsAhead: number = 3): Cal
             eventCount++;
           }
         }
+        
+        // Avançar para o próximo dia
         currentDate.setDate(currentDate.getDate() + 1);
       }
     }
@@ -222,23 +258,23 @@ function convertToCalendarEvent(icalEvent: ICalEvent, startDate: Date, endDate: 
       return null;
     }
     
-    const calendarEvent = {
-      id: icalEvent.uid,
-      title,
-      date: startDate.toISOString().split('T')[0],
-      time: startDate.toLocaleTimeString('pt-BR', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      }),
-      location,
-      description,
-      type,
-      startDate,
-      endDate,
-      isRecurring: !!icalEvent.rrule,
-      recurrenceRule: icalEvent.rrule
-    };
+         const calendarEvent = {
+       id: icalEvent.uid,
+       title,
+       date: startDate.toLocaleDateString('pt-BR').split('/').reverse().join('-'),
+       time: startDate.toLocaleTimeString('pt-BR', { 
+         hour: '2-digit', 
+         minute: '2-digit',
+         hour12: false 
+       }),
+       location,
+       description,
+       type,
+       startDate,
+       endDate,
+       isRecurring: !!icalEvent.rrule,
+       recurrenceRule: icalEvent.rrule
+     };
     
     return calendarEvent;
   } catch (error) {
@@ -249,6 +285,30 @@ function convertToCalendarEvent(icalEvent: ICalEvent, startDate: Date, endDate: 
 
 // Função para tentar buscar dados do iCal usando diferentes métodos
 async function fetchICalData(): Promise<string> {
+  // Se já há dados em cache, retornar
+  if (cacheData) {
+    return cacheData;
+  }
+  
+  // Se já há uma requisição em andamento, aguardar
+  if (cachePromise) {
+    return await cachePromise;
+  }
+  
+  // Criar nova requisição
+  cachePromise = performFetch();
+  
+  try {
+    const data = await cachePromise;
+    cacheData = data;
+    return data;
+  } finally {
+    cachePromise = null;
+  }
+}
+
+// Função interna para realizar a busca
+async function performFetch(): Promise<string> {
   const methods = [
     // Método 1: Tentativa direta (pode funcionar em alguns navegadores/servidores)
     () => fetch(ICAL_URL),
@@ -261,7 +321,6 @@ async function fetchICalData(): Promise<string> {
       const response = await method();
       if (response.ok) {
         const data = await response.text();
-        console.log('Dados do iCal obtidos com sucesso');
         return data;
       }
     } catch (error) {
@@ -298,6 +357,13 @@ export function generateGoogleCalendarUrl(event: CalendarEvent): string {
     console.error('Erro ao gerar URL do Google Calendar:', error);
     return '';
   }
+}
+
+// Função para limpar cache (usada pelo botão atualizar)
+export function clearCache(): void {
+  cacheData = null;
+  cachePromise = null;
+  console.log('Cache limpo - forçando nova busca');
 }
 
 // Função principal para buscar eventos

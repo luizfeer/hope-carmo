@@ -105,7 +105,8 @@ const Schedule: React.FC = () => {
                           <div className="flex items-center text-emerald-200/80">
                             <Calendar className="h-4 w-4 mr-2" />
                             {(() => {
-                              const startDate = new Date(event.date);
+                              // Usar a data já calculada no service
+                              const startDate = event.startDate;
                               const endDate = event.endDate;
                               const isSameDay = startDate.toDateString() === endDate.toDateString();
                               

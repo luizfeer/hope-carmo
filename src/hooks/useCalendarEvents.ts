@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CalendarEvent } from '../types/calendar';
-import { fetchCalendarEvents } from '../services/calendarService';
+import { fetchCalendarEvents, clearCache } from '../services/calendarService';
 
 interface UseCalendarEventsReturn {
   events: CalendarEvent[];
@@ -36,6 +36,11 @@ export function useCalendarEvents(): UseCalendarEventsReturn {
     }
   };
 
+  const refetch = async () => {
+    clearCache(); // Limpar cache antes de buscar novamente
+    await fetchEvents();
+  };
+
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -44,7 +49,7 @@ export function useCalendarEvents(): UseCalendarEventsReturn {
     events,
     loading,
     error,
-    refetch: fetchEvents,
+    refetch,
     lastUpdated
   };
 }
