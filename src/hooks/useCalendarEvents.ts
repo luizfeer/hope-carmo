@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CalendarEvent } from '../types/calendar';
 import { fetchCalendarEvents, clearCache } from '../services/calendarService';
 
@@ -15,6 +15,7 @@ export function useCalendarEvents(): UseCalendarEventsReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const hasRun = useRef(false); // SOLUÇÃO SIMPLES: useRef para controlar execução
 
   const fetchEvents = async () => {
     try {
@@ -42,8 +43,12 @@ export function useCalendarEvents(): UseCalendarEventsReturn {
   };
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    // SOLUÇÃO SIMPLES: Executar apenas uma vez
+    if (!hasRun.current) {
+      hasRun.current = true;
+      fetchEvents();
+    }
+  }, []); // Array vazio = executa apenas uma vez
 
   return {
     events,

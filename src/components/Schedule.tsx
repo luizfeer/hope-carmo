@@ -124,7 +124,9 @@ const Schedule: React.FC = () => {
                             })()}
                           </div>
                           <div className="flex items-center text-emerald-200/80">
+                           
                             <Clock className="h-4 w-4 mr-2" />
+                            
                             {(() => {
                               // Para eventos recorrentes, sempre mostrar apenas o horário de início
                               if (event.isRecurring) {

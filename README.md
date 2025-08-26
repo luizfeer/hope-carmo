@@ -36,11 +36,23 @@ O projeto está configurado para buscar eventos do calendário:
 https://calendar.google.com/calendar/ical/53938eddd91473d2c5bcd0f645b0ff4a84190c7b461850eeab5c4ed1df7c0e91%40group.calendar.google.com/public/basic.ics
 ```
 
-### Proxy CORS
-Para contornar problemas de CORS, o projeto usa:
-1. Proxy local do Vite (desenvolvimento)
-2. Proxy CORS externo (fallback)
-3. Tentativa direta (último recurso)
+### Integração com Calendário
+O projeto oferece múltiplas opções para acessar o calendário:
+
+#### 🎯 Opções Disponíveis:
+1. **Google Calendar API** (Recomendado) - Mais confiável e robusta
+2. **Proxy Local do Vite** - Para desenvolvimento
+3. **Múltiplos Proxies CORS** - Fallback automático
+4. **Acesso Direto** - Último recurso
+
+#### 📋 Proxies CORS Suportados:
+- `api.allorigins.win`
+- `cors-anywhere.herokuapp.com`
+- `thingproxy.freeboard.io`
+- `api.codetabs.com`
+- `corsproxy.io`
+
+**📖 Veja [API_SETUP.md](./API_SETUP.md) para configuração detalhada**
 
 ## Como Usar
 
