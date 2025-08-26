@@ -1,5 +1,4 @@
 import { CalendarEvent, ICalEvent } from '../types/calendar';
-import { fetchGoogleCalendarEvents, isGoogleCalendarApiConfigured } from './googleCalendarApi';
 import { API_CONFIG, getProxyUrl } from '../config/api';
 
 // Cache simples para evitar múltiplas chamadas
@@ -335,18 +334,17 @@ function convertToCalendarEvent(icalEvent: ICalEvent, startDate: Date, endDate: 
       return null;
     }
     
-         // DEBUG: Verificar o que está acontecendo com o horário
-         console.log('DEBUG - convertToCalendarEvent:', {
-           startDate: startDate.toString(),
-           startDateHours: startDate.getHours(),
-           startDateMinutes: startDate.getMinutes(),
-           toLocaleTime: startDate.toLocaleTimeString('pt-BR', { 
-             hour: '2-digit', 
-             minute: '2-digit',
-             hour12: false,
-             timeZone: 'America/Sao_Paulo'
-           })
-         });
+         // Log apenas em desenvolvimento
+         if (import.meta.env.DEV) {
+           console.log('DEBUG - Evento criado:', {
+             title: title,
+             startTime: startDate.toLocaleTimeString('pt-BR', { 
+               hour: '2-digit', 
+               minute: '2-digit',
+               hour12: false
+             })
+           });
+         }
          
          const calendarEvent = {
        id: icalEvent.uid,
@@ -497,19 +495,8 @@ export function clearCache(): void {
 // Função principal para buscar eventos
 export async function fetchCalendarEvents(): Promise<CalendarEvent[]> {
   try {
-    // Primeiro, tentar usar a Google Calendar API (mais confiável)
-    if (isGoogleCalendarApiConfigured()) {
-      console.log('Tentando usar Google Calendar API...');
-      try {
-        const events = await fetchGoogleCalendarEvents();
-        console.log(`Google Calendar API funcionou: ${events.length} eventos encontrados`);
-        return events;
-      } catch (apiError) {
-        console.warn('Google Calendar API falhou, tentando iCal...', apiError);
-      }
-    }
-
-    // Fallback para iCal com múltiplos proxies
+    // DESABILITADO: Google Calendar API removida para evitar erros de API key
+    // Usar apenas método iCal com proxies (mais estável e sem dependências)
     console.log('Usando método iCal com proxies...');
     const icalData = await fetchICalData();
     const icalEvents = parseICal(icalData);
