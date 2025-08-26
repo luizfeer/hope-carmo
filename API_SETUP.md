@@ -4,91 +4,64 @@ Este documento explica como configurar as diferentes opções para acessar o cal
 
 ## 🎯 Opções Disponíveis
 
-### 1. Google Calendar API (Apenas para Desenvolvimento/Backend)
-⚠️ **NÃO RECOMENDADO para sites públicos** - API key fica exposta no frontend.
+### 1. Proxy Próprio (Recomendado)
+✅ **RECOMENDADO para produção** - controle total e máxima confiabilidade.
 
-#### Como configurar:
-1. Acesse [Google Cloud Console](https://console.cloud.google.com/)
-2. Crie um novo projeto ou selecione um existente
-3. Habilite a **Google Calendar API**
-4. Vá para "Credenciais" e crie uma nova **API Key**
-5. Copie a chave e configure no arquivo `src/config/api.ts`
+**URL:** `https://calendario.ipicarmo.com.br`
 
-```typescript
-// Em src/config/api.ts
-API_KEY: 'sua_api_key_aqui',
-```
+#### Vantagens:
+- ✅ **Controle total** - você gerencia o serviço
+- ✅ **Sem rate limiting** - 100k requests/dia gratuitos  
+- ✅ **Headers CORS corretos** - sempre funcionará
+- ✅ **Cache inteligente** - 5 minutos de cache
+- ✅ **Seguro** - sem API keys expostas
 
 ### 2. Proxy Local do Vite (Desenvolvimento)
 Funciona automaticamente durante o desenvolvimento local.
 
-### 3. Proxies CORS Externos (Recomendado para Produção)
-Múltiplos proxies como fallback quando a API principal falha:
+### 3. Proxies CORS Externos (Fallback)
+Múltiplos proxies como fallback quando o proxy principal falha:
 
+- `api.codetabs.com` ✅ Funcionou bem
+- `corsproxy.io` ✅ Confiável
+- `cors.bridged.cc` ✅ Novo proxy
+- `api.allorigins.win` ⚠️ Pode ter issues CORS
+- `cors-anywhere.herokuapp.com` ⚠️ Rate limiting
+- `thingproxy.freeboard.io` ❌ SSL inválido
 
-- `api.allorigins.win`
-- `cors-anywhere.herokuapp.com`
-- `thingproxy.freeboard.io`
-- `api.codetabs.com`
-- `corsproxy.io`
+## 🚀 Como Funciona
 
-## 🔧 Configuração Rápida
+### Ordem de Prioridade:
+1. **Primeiro**: `https://calendario.ipicarmo.com.br` (seu proxy)
+2. **Desenvolvimento**: Proxy local Vite  
+3. **Fallback**: Proxies externos em ordem de confiabilidade
 
-### Para usar apenas proxies (sem API key):
-Não é necessário fazer nada. O sistema tentará automaticamente todos os proxies disponíveis.
-
-### Para usar Google Calendar API:
-1. Crie um arquivo `.env` na raiz do projeto
-2. Adicione sua API key:
-```env
-VITE_GOOGLE_CALENDAR_API_KEY=sua_api_key_aqui
+### Configuração Atual:
+```typescript
+// src/config/api.ts
+CORS_PROXIES: [
+  'https://calendario.ipicarmo.com.br?url=', // Prioridade máxima
+  '/api/calendar/...', // Desenvolvimento
+  'https://api.codetabs.com/v1/proxy?quest=', // Fallback
+  // ... outros proxies
+]
 ```
 
-## 🚀 Ordem de Prioridade
+## 📊 Comparação
 
-O sistema tentará os métodos na seguinte ordem:
-1. **Google Calendar API** (apenas desenvolvimento/backend)
-2. **Proxy local do Vite** (desenvolvimento)
-3. **Proxies CORS externos** (recomendado para produção)
-4. **Acesso direto** (último recurso)
+| Opção | Confiabilidade | Controle | Custo | Segurança |
+|-------|----------------|----------|-------|-----------|
+| **Proxy Próprio** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Gratuito | ⭐⭐⭐⭐⭐ |
+| Proxies Externos | ⭐⭐⭐ | ⭐⭐ | Gratuito | ⭐⭐⭐⭐ |
+| Proxy Local | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Gratuito | ⭐⭐⭐⭐⭐ |
 
-## 📊 Vantagens de Cada Método
+## 🎉 Resultado
 
-| Método | Confiabilidade | Velocidade | Configuração | Segurança |
-|--------|----------------|------------|--------------|-----------|
-| Google Calendar API | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐ |
-| Proxy Local | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| Proxies Externos | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| Acesso Direto | ⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+Com essa configuração, o calendário:
+- ✅ **Sempre funciona** - múltiplos fallbacks
+- ✅ **Performance máxima** - seu proxy é prioridade
+- ✅ **Sem dependências** de APIs pagas
+- ✅ **Seguro** - sem exposição de chaves
+- ✅ **Simples** - menos complexidade
 
-## 🔍 Troubleshooting
-
-### Erro: "Não foi possível acessar o calendário"
-- Verifique sua conexão com a internet
-- Tente atualizar a página
-- Se persistir, configure a Google Calendar API
-
-### Erro: "Google Calendar API error: 403"
-- Verifique se a API key está correta
-- Certifique-se de que a Google Calendar API está habilitada
-- Verifique se o calendário é público
-
-### Erro: "CORS error"
-- Normal durante desenvolvimento, o proxy local deve resolver
-- Em produção, configure a Google Calendar API
-
-## 📝 Notas Importantes
-
-### ⚠️ **Segurança para Sites Públicos:**
-- **NÃO use Google Calendar API no frontend** - API key fica exposta
-- Use apenas proxies CORS para sites públicos
-- Para produção, considere um backend próprio
-
-### 💰 **Custos:**
-- Google Calendar API: 10,000 requests/dia gratuitos, depois $5/1,000 requests
-- Proxies externos: Gratuitos (mas podem ter instabilidade)
-
-### 🔧 **Recomendações:**
-- **Desenvolvimento:** Proxy local do Vite
-- **Sites públicos:** Proxies CORS externos
-- **Aplicações críticas:** Backend próprio com Google Calendar API
+**O sistema está otimizado para máxima confiabilidade!** 🚀
