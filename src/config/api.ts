@@ -9,7 +9,7 @@ export const API_CONFIG = {
     // Proxy próprio (produção) - PRIORIDADE MÁXIMA
     'https://calendario.ipicarmo.com.br?url=',
     
-    // Proxy local do Vite (desenvolvimento)
+    // Proxy local Next.js /api/calendar (desenvolvimento)
     '/api/calendar/calendar/ical/53938eddd91473d2c5bcd0f645b0ff4a84190c7b461850eeab5c4ed1df7c0e91%40group.calendar.google.com/public/basic.ics',
     
     // Proxies CORS externos (fallback)

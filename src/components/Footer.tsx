@@ -1,5 +1,6 @@
 import React from 'react';
-import { Instagram, Mail, MapPin, Phone } from 'lucide-react';
+import Link from 'next/link';
+import { Instagram, Mail, MapPin } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -35,10 +36,26 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Links</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-white hover:text-orange-400 transition-colors">Sobre Nós</a></li>
-              <li><a href="#" className="text-white hover:text-orange-400 transition-colors">Programação</a></li>
-              <li><a href="#" className="text-white hover:text-orange-400 transition-colors">Notícias</a></li>
-              <li><a href="#" className="text-white hover:text-orange-400 transition-colors">Apoie</a></li>
+              <li>
+                <Link href="/" className="text-white hover:text-orange-400 transition-colors">
+                  Sobre Nós
+                </Link>
+              </li>
+              <li>
+                <Link href="/schedule" className="text-white hover:text-orange-400 transition-colors">
+                  Programação
+                </Link>
+              </li>
+              <li>
+                <Link href="/news" className="text-white hover:text-orange-400 transition-colors">
+                  Notícias
+                </Link>
+              </li>
+              <li>
+                <Link href="/donations" className="text-white hover:text-orange-400 transition-colors">
+                  Apoie
+                </Link>
+              </li>
             </ul>
           </div>
 

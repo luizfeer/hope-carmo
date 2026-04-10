@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Calendar, Clock, MapPin, ArrowUpRight, RefreshCw, AlertCircle } from 'lucide-react';
 import { useCalendarEvents } from '../hooks/useCalendarEvents';

@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
 
 const News: React.FC = () => {
@@ -49,10 +52,12 @@ const News: React.FC = () => {
               onClick={() => window.open(article.link, '_blank')}
             >
               <div className="relative h-64 overflow-hidden rounded-2xl mb-6">
-                <img
+                <Image
                   src={article.image}
                   alt={article.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
                 <div className="absolute top-4 left-4">
                   <span className="bg-pink-600/90 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">

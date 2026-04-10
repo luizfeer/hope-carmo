@@ -335,7 +335,7 @@ function convertToCalendarEvent(icalEvent: ICalEvent, startDate: Date, endDate: 
     }
     
          // Log apenas em desenvolvimento
-         if (import.meta.env.DEV) {
+         if (process.env.NODE_ENV === 'development') {
            console.log('DEBUG - Evento criado:', {
              title: title,
              startTime: startDate.toLocaleTimeString('pt-BR', { 

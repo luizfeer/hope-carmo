@@ -1,4 +1,8 @@
+'use client';
+
 import React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { ArrowDown, Instagram, Calendar } from 'lucide-react';
 
 const Hero: React.FC = () => {
@@ -31,10 +35,13 @@ const Hero: React.FC = () => {
             type="video/mp4"
           />
           {/* Fallback para navegadores que não suportam vídeo */}
-          <img 
-            src="/img/bg.webp" 
-            alt="Hope Carmo Background" 
+          <Image
+            src="/img/bg.webp"
+            alt="Hope Carmo Background"
+            width={1920}
+            height={1080}
             className="w-full h-full object-cover opacity-40"
+            sizes="100vw"
           />
         </video>
       </div>
@@ -51,22 +58,29 @@ const Hero: React.FC = () => {
           <span className="block text-white">HOPE</span>
           <span className="block bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">CARMO</span>
         </h1> */}
-        <img src="/img/logo-amarelo.webp" alt="Hope Carmo" className="w-full px-14 md:w-1/2 mb-3 mx-auto"  />
+        <div className="relative w-full max-w-lg md:max-w-md px-14 md:w-1/2 mb-3 mx-auto aspect-[2/1] md:aspect-[2.2/1]">
+          <Image
+            src="/img/logo-amarelo.webp"
+            alt="Hope Carmo"
+            fill
+            className="object-contain"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority
+          />
+        </div>
 
         <p className="text-xl md:text-2xl text-white/70 mb-12 max-w-2xl mx-auto font-light">
           Um farol de esperança para a juventude em Carmo do Rio Claro
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
-          <button 
-            onClick={() => {
-              window.location.hash = 'schedule';
-            }}
+          <Link
+            href="/schedule"
             className="group bg-white text-black px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/90 transition-all duration-300 flex items-center"
           >
             Próximo Encontro
             <Calendar className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </button>
+          </Link>
           
           <a 
             href="https://instagram.com/hopecarmo" 

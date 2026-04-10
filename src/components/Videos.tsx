@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import Image from 'next/image';
 import { Play } from 'lucide-react';
 
 const Videos: React.FC = () => {
@@ -43,11 +46,13 @@ const Videos: React.FC = () => {
               className="group cursor-pointer"
               onClick={() => window.open(video.link, '_blank')}
             >
-              <div className="relative overflow-hidden rounded-2xl mb-4">
-                <img
+              <div className="relative h-48 overflow-hidden rounded-2xl mb-4">
+                <Image
                   src={video.thumbnail}
                   alt={video.title}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                   <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300">
