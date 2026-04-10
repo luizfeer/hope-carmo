@@ -41,24 +41,27 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const ip     = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '';
-    const params = new URLSearchParams();
-    params.set('secret',   TURNSTILE_SECRET);
-    params.set('response', turnstileToken);
-    if (ip) params.set('remoteip', ip);
+    const ip   = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '';
+    // String literal — forma mais explícita e compatível com qualquer runtime
+    const body = [
+      `secret=${encodeURIComponent(TURNSTILE_SECRET)}`,
+      `response=${encodeURIComponent(turnstileToken)}`,
+      ...(ip ? [`remoteip=${encodeURIComponent(ip)}`] : []),
+    ].join('&');
 
-    const cfRes  = await fetch('https://challenges.cloudflare.com/turnstile/v1/siteverify', {
+    const cfRes = await fetch('https://challenges.cloudflare.com/turnstile/v1/siteverify', {
       method:  'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body:    params,
+      body,
     });
 
-    const text   = await cfRes.text();
+    const text = await cfRes.text();
+    console.log('[sermon] Turnstile status:', cfRes.status, '| body:', text.slice(0, 300));
+
     let cfData: { success: boolean; 'error-codes'?: string[] };
     try {
       cfData = JSON.parse(text);
     } catch {
-      console.error('[sermon] Turnstile non-JSON response:', text.slice(0, 200));
       return jsonError('Resposta inesperada do servidor de segurança.', 500);
     }
 
