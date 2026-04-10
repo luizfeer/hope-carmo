@@ -36,20 +36,30 @@ export async function POST(req: NextRequest) {
   };
 
   // ── Verifica Cloudflare Turnstile ────────────────────────────────────────
+  if (!turnstileToken) {
+    return jsonError('Token de segurança ausente.', 400);
+  }
+
   try {
     const ip     = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '';
-    const params = new URLSearchParams({
-      secret:   TURNSTILE_SECRET,
-      response: turnstileToken ?? '',
-      ...(ip ? { remoteip: ip } : {}),
-    });
-
     const cfRes  = await fetch('https://challenges.cloudflare.com/turnstile/v1/siteverify', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body:    params.toString(),
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        secret:   TURNSTILE_SECRET,
+        response: turnstileToken,
+        ...(ip ? { remoteip: ip } : {}),
+      }),
     });
-    const cfData = await cfRes.json() as { success: boolean; 'error-codes'?: string[] };
+
+    const text   = await cfRes.text();
+    let cfData: { success: boolean; 'error-codes'?: string[] };
+    try {
+      cfData = JSON.parse(text);
+    } catch {
+      console.error('[sermon] Turnstile non-JSON response:', text.slice(0, 200));
+      return jsonError('Resposta inesperada do servidor de segurança.', 500);
+    }
 
     if (!cfData.success) {
       console.error('[sermon] Turnstile rejected:', cfData['error-codes']);
