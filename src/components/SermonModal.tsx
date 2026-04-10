@@ -13,9 +13,9 @@ type Status = 'idle' | 'loading' | 'success' | 'error';
 const API_URL = '/api/submit-sermon-response';
 
 const SermonModal: React.FC<SermonModalProps> = ({ onClose }) => {
-  const [form, setForm] = useState({ q1: '', q2: '', q3: '' });
+  const [form, setForm]         = useState({ q1: '', q2: '', q3: '' });
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [status, setStatus] = useState<Status>('idle');
+  const [status, setStatus]     = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const turnstileRef = useRef<TurnstileInstance | null>(null);
 
@@ -35,10 +35,10 @@ const SermonModal: React.FC<SermonModalProps> = ({ onClose }) => {
     setErrorMsg('');
 
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
+      const res  = await fetch(API_URL, {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body:    JSON.stringify({
           turnstileToken,
           question_1: form.q1 || null,
           question_2: form.q2 || null,
@@ -46,42 +46,36 @@ const SermonModal: React.FC<SermonModalProps> = ({ onClose }) => {
         }),
       });
 
-      // Parseia com segurança — servidor pode retornar HTML em erros inesperados
       let data: { success?: boolean; error?: string } = {};
       const text = await res.text();
       try { data = JSON.parse(text); } catch { /* não é JSON */ }
 
       if (!res.ok || data.error) {
-        throw new Error(data.error || `Erro ${res.status} ao enviar. Tente novamente.`);
+        throw new Error(data.error || `Erro ${res.status}. Tente novamente.`);
       }
 
       setStatus('success');
     } catch (err: unknown) {
       setStatus('error');
-      setErrorMsg(
-        err instanceof Error ? err.message : 'Algo deu errado. Tente novamente.'
-      );
+      setErrorMsg(err instanceof Error ? err.message : 'Algo deu errado. Tente novamente.');
       turnstileRef.current?.reset();
       setTurnstileToken(null);
     }
   };
 
-  const handleChange = (field: 'q1' | 'q2' | 'q3') => (
-    e: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    if (errorMsg) setErrorMsg('');
-  };
+  const handleChange = (field: 'q1' | 'q2' | 'q3') =>
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+      if (errorMsg) setErrorMsg('');
+    };
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
 
-      {/* Modal */}
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-zinc-950 border border-orange-500/30 rounded-2xl shadow-2xl shadow-orange-500/10 animate-modal-in">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-zinc-950 border-b border-orange-500/20 px-6 py-4 flex items-center justify-between">
@@ -93,15 +87,11 @@ const SermonModal: React.FC<SermonModalProps> = ({ onClose }) => {
               Fé que Passa pelo Fogo
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="text-white/40 hover:text-white transition-colors p-1"
-          >
+          <button onClick={onClose} className="text-white/40 hover:text-white transition-colors p-1">
             <X size={22} />
           </button>
         </div>
 
-        {/* Content */}
         <div className="px-6 py-6">
           {status === 'success' ? (
             <SuccessState onClose={onClose} />
@@ -111,26 +101,10 @@ const SermonModal: React.FC<SermonModalProps> = ({ onClose }) => {
                 Suas respostas são anônimas. Responda o que sentir vontade — uma, duas ou todas as perguntas.
               </p>
 
-              <Question
-                number={1}
-                label="Qual dúvida sobre a fé você nunca teve coragem de fazer em voz alta?"
-                value={form.q1}
-                onChange={handleChange('q1')}
-              />
-              <Question
-                number={2}
-                label="Já teve um momento em que quis desistir de crer? O que aconteceu?"
-                value={form.q2}
-                onChange={handleChange('q2')}
-              />
-              <Question
-                number={3}
-                label="O que mais te ajudou a continuar crendo — ou o que você ainda está procurando?"
-                value={form.q3}
-                onChange={handleChange('q3')}
-              />
+              <Question number={1} label="Qual dúvida sobre a fé você nunca teve coragem de fazer em voz alta?" value={form.q1} onChange={handleChange('q1')} />
+              <Question number={2} label="Já teve um momento em que quis desistir de crer? O que aconteceu?"    value={form.q2} onChange={handleChange('q2')} />
+              <Question number={3} label="O que mais te ajudou a continuar crendo — ou o que você ainda está procurando?" value={form.q3} onChange={handleChange('q3')} />
 
-              {/* Turnstile */}
               <div className="flex justify-center">
                 <Turnstile
                   ref={turnstileRef}
@@ -155,15 +129,9 @@ const SermonModal: React.FC<SermonModalProps> = ({ onClose }) => {
                 className="w-full py-4 bg-gradient-to-r from-orange-500 to-yellow-400 text-black font-black text-sm tracking-wider rounded-xl hover:from-orange-400 hover:to-yellow-300 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30"
               >
                 {status === 'loading' ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                    Enviando...
-                  </>
+                  <><span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Enviando...</>
                 ) : (
-                  <>
-                    <Send size={16} />
-                    Enviar resposta
-                  </>
+                  <><Send size={16} /> Enviar resposta</>
                 )}
               </button>
             </form>

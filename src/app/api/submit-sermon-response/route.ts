@@ -1,17 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { request as httpsRequest } from 'node:https';
+import { stringify } from 'node:querystring';
 
-const TURNSTILE_SECRET   = process.env.TURNSTILE_SECRET_KEY ?? '';
-const SUPABASE_URL       = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
+const TURNSTILE_SECRET    = process.env.TURNSTILE_SECRET_KEY        ?? '';
+const SUPABASE_URL        = process.env.NEXT_PUBLIC_SUPABASE_URL    ?? '';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY  ?? '';
 
-/** Sempre retorna JSON — nunca deixa o Next.js gerar página de erro HTML */
 function jsonError(message: string, status = 500) {
   return NextResponse.json({ error: message }, { status });
 }
 
+/** Verifica o token do Turnstile usando node:https — bypassa o fetch patchado pelo Next.js */
+function verifyTurnstile(token: string, ip?: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const payload = stringify({
+      secret:   TURNSTILE_SECRET,
+      response: token,
+      ...(ip ? { remoteip: ip } : {}),
+    });
+
+    const req = httpsRequest(
+      {
+        hostname: 'challenges.cloudflare.com',
+        path:     '/turnstile/v1/siteverify',
+        method:   'POST',
+        headers:  {
+          'Content-Type':   'application/x-www-form-urlencoded',
+          'Content-Length': Buffer.byteLength(payload),
+        },
+      },
+      (res) => {
+        let raw = '';
+        res.on('data', (chunk: Buffer) => { raw += chunk.toString(); });
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(raw) as { success: boolean; 'error-codes'?: string[] };
+            if (!json.success) {
+              console.error('[sermon] Turnstile rejected:', json['error-codes']);
+            }
+            resolve(json.success === true);
+          } catch {
+            reject(new Error(`Turnstile resposta inválida: ${raw.slice(0, 120)}`));
+          }
+        });
+      }
+    );
+
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
 export async function POST(req: NextRequest) {
-  // Guarda de env vars em produção
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     console.error('[sermon] Env vars do Supabase ausentes');
     return jsonError('Configuração do servidor incompleta.', 500);
@@ -35,46 +77,23 @@ export async function POST(req: NextRequest) {
     question_3?: string;
   };
 
-  // ── Verifica Cloudflare Turnstile ────────────────────────────────────────
   if (!turnstileToken) {
     return jsonError('Token de segurança ausente.', 400);
   }
 
+  // ── Verifica Turnstile via node:https (sem fetch patchado) ────────────────
   try {
-    const ip   = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '';
-    // String literal — forma mais explícita e compatível com qualquer runtime
-    const body = [
-      `secret=${encodeURIComponent(TURNSTILE_SECRET)}`,
-      `response=${encodeURIComponent(turnstileToken)}`,
-      ...(ip ? [`remoteip=${encodeURIComponent(ip)}`] : []),
-    ].join('&');
-
-    const cfRes = await fetch('https://challenges.cloudflare.com/turnstile/v1/siteverify', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-    });
-
-    const text = await cfRes.text();
-    console.log('[sermon] Turnstile status:', cfRes.status, '| body:', text.slice(0, 300));
-
-    let cfData: { success: boolean; 'error-codes'?: string[] };
-    try {
-      cfData = JSON.parse(text);
-    } catch {
-      return jsonError('Resposta inesperada do servidor de segurança.', 500);
-    }
-
-    if (!cfData.success) {
-      console.error('[sermon] Turnstile rejected:', cfData['error-codes']);
+    const ip      = req.headers.get('x-forwarded-for')?.split(',')[0].trim();
+    const success = await verifyTurnstile(turnstileToken, ip);
+    if (!success) {
       return jsonError('Verificação de segurança falhou. Atualize a página e tente novamente.', 400);
     }
   } catch (err) {
-    console.error('[sermon] Turnstile fetch error:', err);
-    return jsonError('Erro ao contactar servidor de segurança. Tente novamente.', 500);
+    console.error('[sermon] Turnstile error:', err);
+    return jsonError('Erro ao verificar segurança. Tente novamente.', 500);
   }
 
-  // ── Salva no Supabase ────────────────────────────────────────────────────
+  // ── Salva no Supabase ─────────────────────────────────────────────────────
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
       auth: { persistSession: false },
