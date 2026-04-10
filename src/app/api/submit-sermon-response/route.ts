@@ -37,24 +37,27 @@ export async function POST(req: NextRequest) {
 
   // ── Verifica Cloudflare Turnstile ────────────────────────────────────────
   try {
-    const form = new FormData();
-    form.append('secret', TURNSTILE_SECRET);
-    form.append('response', turnstileToken ?? '');
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '';
-    if (ip) form.append('remoteip', ip);
+    const ip     = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '';
+    const params = new URLSearchParams({
+      secret:   TURNSTILE_SECRET,
+      response: turnstileToken ?? '',
+      ...(ip ? { remoteip: ip } : {}),
+    });
 
     const cfRes  = await fetch('https://challenges.cloudflare.com/turnstile/v1/siteverify', {
-      method: 'POST',
-      body: form,
+      method:  'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:    params.toString(),
     });
-    const cfData = await cfRes.json() as { success: boolean };
+    const cfData = await cfRes.json() as { success: boolean; 'error-codes'?: string[] };
 
     if (!cfData.success) {
+      console.error('[sermon] Turnstile rejected:', cfData['error-codes']);
       return jsonError('Verificação de segurança falhou. Atualize a página e tente novamente.', 400);
     }
   } catch (err) {
-    console.error('[sermon] Turnstile error:', err);
-    return jsonError('Erro ao verificar segurança.', 500);
+    console.error('[sermon] Turnstile fetch error:', err);
+    return jsonError('Erro ao contactar servidor de segurança. Tente novamente.', 500);
   }
 
   // ── Salva no Supabase ────────────────────────────────────────────────────
