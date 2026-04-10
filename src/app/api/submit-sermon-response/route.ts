@@ -42,14 +42,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const ip     = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '';
+    const params = new URLSearchParams();
+    params.set('secret',   TURNSTILE_SECRET);
+    params.set('response', turnstileToken);
+    if (ip) params.set('remoteip', ip);
+
     const cfRes  = await fetch('https://challenges.cloudflare.com/turnstile/v1/siteverify', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        secret:   TURNSTILE_SECRET,
-        response: turnstileToken,
-        ...(ip ? { remoteip: ip } : {}),
-      }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:    params,
     });
 
     const text   = await cfRes.text();
