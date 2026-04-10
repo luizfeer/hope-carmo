@@ -4,7 +4,8 @@
       "WebFetch(domain:www.radios.com.br)",
       "WebSearch",
       "WebFetch(domain:fmstream.org)",
-      "WebFetch(domain:stm25.srvaudio.com.br)"
+      "WebFetch(domain:stm25.srvaudio.com.br)",
+      "WebFetch(domain:developers.cloudflare.com)"
     ]
   }
 }

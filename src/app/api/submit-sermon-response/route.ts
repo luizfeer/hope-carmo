@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { request as httpsRequest } from 'node:https';
-import { stringify } from 'node:querystring';
 
 const TURNSTILE_SECRET    = process.env.TURNSTILE_SECRET_KEY        ?? '';
 const SUPABASE_URL        = process.env.NEXT_PUBLIC_SUPABASE_URL    ?? '';
@@ -11,10 +10,10 @@ function jsonError(message: string, status = 500) {
   return NextResponse.json({ error: message }, { status });
 }
 
-/** Verifica o token do Turnstile usando node:https — bypassa o fetch patchado pelo Next.js */
+/** Verifica o token do Turnstile via node:https com JSON body (endpoint v0 — oficial Cloudflare) */
 function verifyTurnstile(token: string, ip?: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
-    const payload = stringify({
+    const payload = JSON.stringify({
       secret:   TURNSTILE_SECRET,
       response: token,
       ...(ip ? { remoteip: ip } : {}),
@@ -23,10 +22,10 @@ function verifyTurnstile(token: string, ip?: string): Promise<boolean> {
     const req = httpsRequest(
       {
         hostname: 'challenges.cloudflare.com',
-        path:     '/turnstile/v1/siteverify',
+        path:     '/turnstile/v0/siteverify',  // v0 — URL correta segundo docs oficiais
         method:   'POST',
         headers:  {
-          'Content-Type':   'application/x-www-form-urlencoded',
+          'Content-Type':   'application/json',
           'Content-Length': Buffer.byteLength(payload),
         },
       },
@@ -36,9 +35,7 @@ function verifyTurnstile(token: string, ip?: string): Promise<boolean> {
         res.on('end', () => {
           try {
             const json = JSON.parse(raw) as { success: boolean; 'error-codes'?: string[] };
-            if (!json.success) {
-              console.error('[sermon] Turnstile rejected:', json['error-codes']);
-            }
+            if (!json.success) console.error('[sermon] Turnstile rejected:', json['error-codes']);
             resolve(json.success === true);
           } catch {
             reject(new Error(`Turnstile resposta inválida: ${raw.slice(0, 120)}`));
