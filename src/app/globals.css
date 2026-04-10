@@ -63,3 +63,30 @@ body {
 .animate-shimmer {
   animation: shimmer 2s linear infinite;
 }
+
+/* Título da rádio: rola para a esquerda quando não cabe no player */
+@keyframes radio-title-marquee {
+  0%,
+  12% {
+    transform: translateX(0);
+  }
+  45%,
+  55% {
+    transform: translateX(calc(-1 * var(--marquee-distance, 0px)));
+  }
+  88%,
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-radio-title-marquee {
+  animation: radio-title-marquee var(--marquee-duration, 12s) ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-radio-title-marquee {
+    animation: none;
+    transform: none;
+  }
+}

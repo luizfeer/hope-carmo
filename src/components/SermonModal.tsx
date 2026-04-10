@@ -46,10 +46,13 @@ const SermonModal: React.FC<SermonModalProps> = ({ onClose }) => {
         }),
       });
 
-      const data = await res.json();
+      // Parseia com segurança — servidor pode retornar HTML em erros inesperados
+      let data: { success?: boolean; error?: string } = {};
+      const text = await res.text();
+      try { data = JSON.parse(text); } catch { /* não é JSON */ }
 
       if (!res.ok || data.error) {
-        throw new Error(data.error || 'Erro ao enviar.');
+        throw new Error(data.error || `Erro ${res.status} ao enviar. Tente novamente.`);
       }
 
       setStatus('success');

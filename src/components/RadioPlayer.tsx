@@ -1,7 +1,22 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Play, Pause, Volume2, VolumeX, Radio, X, ChevronDown, Music } from 'lucide-react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Radio,
+  X,
+  ChevronDown,
+  Music,
+} from 'lucide-react';
 
 const STREAM_URL   = process.env.NEXT_PUBLIC_RADIO_STREAM_URL ?? '';
 const STATION_NAME = 'Rádio Ten';
@@ -20,7 +35,13 @@ export default function RadioPlayer() {
   const [error,     setError]     = useState(false);
   const [songTitle, setSongTitle] = useState<string | null>(null);
 
-  // ── Áudio ──────────────────────────────────────────────────────────────────
+  const titleContainerRef = useRef<HTMLDivElement | null>(null);
+  const titleTextRef = useRef<HTMLSpanElement | null>(null);
+  const [titleScrollPx, setTitleScrollPx] = useState(0);
+  /** Limpar o src dispara o evento error no audio — ignorar ao pausar ou após autoplay bloqueado. */
+  const ignoreNextAudioErrorRef = useRef(false);
+
+  // ── Áudio + autoplay ao abrir (se o navegador permitir) ─────────────────────
   useEffect(() => {
     const audio = new Audio();
     audio.preload = 'none';
@@ -29,11 +50,37 @@ export default function RadioPlayer() {
     audio.addEventListener('playing', () => { setPlaying(true);  setLoading(false); setError(false); });
     audio.addEventListener('waiting', () => setLoading(true));
     audio.addEventListener('pause',   () => { setPlaying(false); setLoading(false); });
-    audio.addEventListener('error',   () => { setError(true);    setLoading(false); setPlaying(false); });
+    audio.addEventListener('error',   () => {
+      if (ignoreNextAudioErrorRef.current) {
+        ignoreNextAudioErrorRef.current = false;
+        setLoading(false);
+        return;
+      }
+      setError(true);
+      setLoading(false);
+      setPlaying(false);
+    });
     audio.addEventListener('stalled', () => setLoading(false));
 
     audioRef.current = audio;
-    return () => { audio.pause(); audio.src = ''; };
+
+    if (STREAM_URL) {
+      setLoading(true);
+      audio.src = STREAM_URL;
+      audio.load();
+      audio.play().catch(() => {
+        setLoading(false);
+        setError(false);
+        ignoreNextAudioErrorRef.current = true;
+        audio.removeAttribute('src');
+      });
+    }
+
+    return () => {
+      ignoreNextAudioErrorRef.current = true;
+      audio.pause();
+      audio.removeAttribute('src');
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Polling de metadados ───────────────────────────────────────────────────
@@ -57,19 +104,59 @@ export default function RadioPlayer() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [playing, fetchMeta]);
 
+  // ── Título longo: rolagem horizontal (sem truncate + ícone duplicando “…”) ──
+  const measureTitleScroll = useCallback(() => {
+    const c = titleContainerRef.current;
+    const t = titleTextRef.current;
+    if (!c || !t || !songTitle) {
+      setTitleScrollPx(0);
+      return;
+    }
+    const d = t.scrollWidth - c.clientWidth;
+    setTitleScrollPx(d > 1 ? d : 0);
+  }, [songTitle]);
+
+  useLayoutEffect(() => {
+    measureTitleScroll();
+  }, [measureTitleScroll, songTitle, minimized]);
+
+  useEffect(() => {
+    const c = titleContainerRef.current;
+    if (!c || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => measureTitleScroll());
+    ro.observe(c);
+    return () => ro.disconnect();
+  }, [measureTitleScroll, songTitle]);
+
+  useEffect(() => {
+    const onResize = () => measureTitleScroll();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [measureTitleScroll]);
+
+  const marqueeDurationSec =
+    titleScrollPx > 0
+      ? Math.min(22, Math.max(9, 8 + titleScrollPx / 28))
+      : 12;
+
   // ── Controles ──────────────────────────────────────────────────────────────
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
     if (playing) {
+      setError(false);
+      ignoreNextAudioErrorRef.current = true;
       audio.pause();
-      audio.src = '';
+      audio.removeAttribute('src');
     } else {
       setError(false);
       setLoading(true);
       audio.src = STREAM_URL;
       audio.load();
-      audio.play().catch(() => { setLoading(false); setError(true); });
+      audio.play().catch(() => {
+        setLoading(false);
+        setError(true);
+      });
     }
   }, [playing]);
 
@@ -139,11 +226,29 @@ export default function RadioPlayer() {
               <p className="text-white font-bold text-sm leading-tight">{STATION_NAME}</p>
 
               {songTitle ? (
-                <div className="flex items-center gap-1 mt-0.5">
+                <div className="flex items-center gap-1 mt-0.5 min-w-0">
                   <Music size={10} className="text-orange-400 shrink-0" />
-                  <p className="text-orange-300/80 text-[11px] truncate animate-fade-in">
-                    {songTitle}
-                  </p>
+                  <div
+                    ref={titleContainerRef}
+                    className="min-w-0 flex-1 overflow-hidden"
+                    title={songTitle}
+                  >
+                    <span
+                      ref={titleTextRef}
+                      className={`
+                        inline-block text-orange-300/80 text-[11px] leading-snug whitespace-nowrap animate-fade-in
+                        ${titleScrollPx > 0 ? 'animate-radio-title-marquee' : ''}
+                      `}
+                      style={
+                        {
+                          '--marquee-distance': `${titleScrollPx}px`,
+                          '--marquee-duration': `${marqueeDurationSec}s`,
+                        } as React.CSSProperties
+                      }
+                    >
+                      {songTitle}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <p className="text-white/30 text-[11px]">
