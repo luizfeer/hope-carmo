@@ -1,54 +1,84 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowDown, Instagram, Calendar } from 'lucide-react';
 
+const VIDEO_URL =
+  'https://res.cloudinary.com/dwsqvtil1/video/upload/v1755725442/bg-n-hd_t17qjg.mp4';
+
 const Hero: React.FC = () => {
+  const videoRef    = useRef<HTMLVideoElement>(null);
+  const blobUrlRef  = useRef<string | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    let cancelled = false;
+
+    // Baixa o vídeo uma única vez como blob → nenhum range-request depois disso
+    fetch(VIDEO_URL)
+      .then(r => r.blob())
+      .then(blob => {
+        if (cancelled) return;
+        const url = URL.createObjectURL(blob);
+        blobUrlRef.current = url;
+        video.src  = url;
+        video.load();
+        video.play().catch(() => {/* autoplay bloqueado — poster já cobre */});
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Fallback: usa URL original se fetch falhar (ex: offline/CORS)
+        video.src = VIDEO_URL;
+        video.load();
+        video.play().catch(() => {});
+      });
+
+    return () => {
+      cancelled = true;
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+    };
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
       {/* Video Background */}
       <div className="absolute inset-0 w-full h-full">
         <video
-          autoPlay
+          ref={videoRef}
           muted
+          loop
           playsInline
-          preload="auto"
+          preload="none"
           poster="/img/bg.webp"
           className="w-full h-full object-cover opacity-40"
-          onEnded={(e) => {
-            // Loop manual: evita re-request ao CDN a cada ciclo
-            const v = e.currentTarget;
-            v.currentTime = 0;
-            v.play().catch(() => {/* silencia erro de política de autoplay */});
-          }}
           onError={(e) => {
-            const videoElement = e.currentTarget;
-            videoElement.style.display = 'none';
-            const fallbackDiv = videoElement.parentElement;
-            if (fallbackDiv) {
-              fallbackDiv.style.backgroundImage = 'url(/img/bg.webp)';
-              fallbackDiv.style.backgroundSize = 'cover';
-              fallbackDiv.style.backgroundPosition = 'center';
-              fallbackDiv.style.backgroundRepeat = 'no-repeat';
+            const v = e.currentTarget;
+            v.style.display = 'none';
+            const wrap = v.parentElement;
+            if (wrap) {
+              wrap.style.backgroundImage    = 'url(/img/bg.webp)';
+              wrap.style.backgroundSize     = 'cover';
+              wrap.style.backgroundPosition = 'center';
             }
           }}
-        >
-          <source
-            src="https://res.cloudinary.com/dwsqvtil1/video/upload/v1755725442/bg-n-hd_t17qjg.mp4"
-            type="video/mp4"
-          />
-          {/* Fallback para navegadores que não suportam vídeo */}
-          <Image
-            src="/img/bg.webp"
-            alt="Hope Carmo Background"
-            width={1920}
-            height={1080}
-            className="w-full h-full object-cover opacity-40"
-            sizes="100vw"
-          />
-        </video>
+        />
+        {/* Poster estático enquanto o vídeo carrega */}
+        <Image
+          src="/img/bg.webp"
+          alt=""
+          fill
+          aria-hidden
+          className="object-cover opacity-40 -z-10"
+          sizes="100vw"
+          priority
+        />
       </div>
 
       {/* Content */}
@@ -59,10 +89,6 @@ const Hero: React.FC = () => {
           </div>
         </div>
 
-        {/* <h1 className="text-6xl md:text-8xl lg:text-9xl font-black mb-8 leading-none">
-          <span className="block text-white">HOPE</span>
-          <span className="block bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">CARMO</span>
-        </h1> */}
         <div className="relative w-full max-w-lg md:max-w-md px-14 md:w-1/2 mb-3 mx-auto aspect-[2/1] md:aspect-[2.2/1]">
           <Image
             src="/img/logo-amarelo.webp"
@@ -86,10 +112,10 @@ const Hero: React.FC = () => {
             Próximo Encontro
             <Calendar className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Link>
-          
-          <a 
-            href="https://instagram.com/hopecarmo" 
-            target="_blank" 
+
+          <a
+            href="https://instagram.com/hopecarmo"
+            target="_blank"
             rel="noopener noreferrer"
             className="group flex items-center text-white/80 hover:text-white transition-colors"
           >
@@ -98,22 +124,6 @@ const Hero: React.FC = () => {
             <ArrowDown className="ml-2 h-4 w-4 rotate-[-45deg] group-hover:translate-x-1 transition-transform" />
           </a>
         </div>
-
-        {/* Stats */}
-        {/* <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-white mb-1">50+</div>
-            <div className="text-white/50 text-sm uppercase tracking-wider">Jovens</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-white mb-1">3</div>
-            <div className="text-white/50 text-sm uppercase tracking-wider">Anos</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-white mb-1">100+</div>
-            <div className="text-white/50 text-sm uppercase tracking-wider">Vidas</div>
-          </div>
-        </div> */}
       </div>
 
       {/* Scroll Indicator */}

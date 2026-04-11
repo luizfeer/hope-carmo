@@ -2,6 +2,10 @@ import type { Metadata, Viewport } from 'next';
 import SiteShell from '@/components/SiteShell';
 import RadioPlayer from '@/components/RadioPlayer';
 import './globals.css';
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://hopecarmo.com'),
@@ -47,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={cn("font-sans", geist.variable)}>
       <body className="min-h-screen bg-black text-white antialiased">
         <SiteShell>{children}</SiteShell>
         <RadioPlayer />
