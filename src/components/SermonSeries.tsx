@@ -1,52 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { MessageCircle } from 'lucide-react';
-import SermonModal from './SermonModal';
-
-/** Hash e query usados para link direto ao formulário: /#pesquisa ou /?abrir=pesquisa */
-const PESQUISA_HASH = '#pesquisa';
+import { usePesquisaModalOptional } from './PesquisaModalProvider';
 
 const SermonSeries: React.FC = () => {
-  const [modalOpen, setModalOpen] = useState(false);
-
-  useEffect(() => {
-    const syncFromHash = () => {
-      setModalOpen(typeof window !== 'undefined' && window.location.hash === PESQUISA_HASH);
-    };
-
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('abrir') === 'pesquisa') {
-      params.delete('abrir');
-      const q = params.toString();
-      const path = window.location.pathname;
-      const search = q ? `?${q}` : '';
-      window.history.replaceState(null, '', `${path}${search}${PESQUISA_HASH}`);
-      setModalOpen(true);
-    } else {
-      syncFromHash();
-    }
-
-    window.addEventListener('hashchange', syncFromHash);
-    return () => window.removeEventListener('hashchange', syncFromHash);
-  }, []);
-
-  const openModal = useCallback(() => {
-    setModalOpen(true);
-    if (typeof window !== 'undefined' && window.location.hash !== PESQUISA_HASH) {
-      const { pathname, search } = window.location;
-      window.history.replaceState(null, '', `${pathname}${search}${PESQUISA_HASH}`);
-    }
-  }, []);
-
-  const closeModal = useCallback(() => {
-    setModalOpen(false);
-    if (typeof window !== 'undefined' && window.location.hash === PESQUISA_HASH) {
-      const { pathname, search } = window.location;
-      window.history.replaceState(null, '', `${pathname}${search}`);
-    }
-  }, []);
+  const pesquisa = usePesquisaModalOptional();
+  const openModal = () => pesquisa?.openModal();
 
   return (
     <>
@@ -147,8 +108,6 @@ const SermonSeries: React.FC = () => {
           </div>
         </div>
       </section>
-
-      {modalOpen && <SermonModal onClose={closeModal} />}
     </>
   );
 };

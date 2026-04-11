@@ -156,19 +156,12 @@ export default function RadioPlayer() {
     const ctrl = new AbortController();
     artAbort.current = ctrl;
     try {
-      const q   = encodeURIComponent(title);
-      const res = await fetch(
-        `https://itunes.apple.com/search?term=${q}&media=music&entity=song&limit=5`,
-        { signal: ctrl.signal },
-      );
+      const res = await fetch(`/api/itunes-artwork?term=${encodeURIComponent(title)}`, {
+        signal: ctrl.signal,
+      });
       if (!res.ok || ctrl.signal.aborted) return;
-      const data = await res.json() as { results?: Array<{ artworkUrl100?: string; kind?: string }> };
-      // filtra apenas songs com artwork de imagem
-      const hit = data.results?.find(r =>
-        r.kind === 'song' && r.artworkUrl100 && /\.(jpg|jpeg|png)/i.test(r.artworkUrl100),
-      );
-      const art = hit?.artworkUrl100?.replace(/\d+x\d+bb/, '600x600bb') ?? null;
-      if (!ctrl.signal.aborted) setArtwork(art);
+      const data = (await res.json()) as { artworkUrl?: string | null };
+      if (!ctrl.signal.aborted) setArtwork(data.artworkUrl ?? null);
     } catch (e) {
       if ((e as Error).name !== 'AbortError') setArtwork(null);
     }

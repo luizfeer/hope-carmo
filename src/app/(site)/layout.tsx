@@ -1,5 +1,6 @@
 import SiteShell from '@/components/SiteShell';
 import RadioPlayer from '@/components/RadioPlayer';
+import { PesquisaModalProvider } from '@/components/PesquisaModalProvider';
 
 export default function SiteLayout({
   children,
@@ -8,7 +9,9 @@ export default function SiteLayout({
 }) {
   return (
     <>
-      <SiteShell>{children}</SiteShell>
+      <PesquisaModalProvider>
+        <SiteShell>{children}</SiteShell>
+      </PesquisaModalProvider>
       <RadioPlayer />
     </>
   );

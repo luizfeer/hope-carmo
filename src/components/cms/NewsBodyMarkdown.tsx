@@ -1,9 +1,53 @@
 'use client';
 
+import type { ComponentPropsWithoutRef } from 'react';
 import type { Components } from 'react-markdown';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
+import {
+  shouldOpenPesquisaModalSamePage,
+  usePesquisaModalOptional,
+} from '@/components/PesquisaModalProvider';
+
+const linkClass =
+  'font-medium text-pink-300 underline decoration-pink-500/50 underline-offset-4 transition-colors hover:text-pink-200';
+
+function NewsMarkdownAnchor({
+  href,
+  children,
+  ...rest
+}: ComponentPropsWithoutRef<'a'>) {
+  const pesquisa = usePesquisaModalOptional();
+
+  if (pesquisa && href && shouldOpenPesquisaModalSamePage(href)) {
+    return (
+      <a
+        href={href}
+        className={linkClass}
+        {...rest}
+        onClick={(e) => {
+          e.preventDefault();
+          pesquisa.openModal();
+        }}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={href}
+      className={linkClass}
+      target="_blank"
+      rel="noopener noreferrer"
+      {...rest}
+    >
+      {children}
+    </a>
+  );
+}
 
 const components: Components = {
   img: ({ node, ...props }) => {
@@ -18,15 +62,12 @@ const components: Components = {
       />
     );
   },
-  a: ({ node, ...props }) => {
+  a: ({ node, href, children, ...props }) => {
     void node;
     return (
-      <a
-        {...props}
-        className="font-medium text-pink-300 underline decoration-pink-500/50 underline-offset-4 transition-colors hover:text-pink-200"
-        target="_blank"
-        rel="noopener noreferrer"
-      />
+      <NewsMarkdownAnchor href={href} {...props}>
+        {children}
+      </NewsMarkdownAnchor>
     );
   },
 };
