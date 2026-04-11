@@ -1,16 +1,56 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { MessageCircle } from 'lucide-react';
 import SermonModal from './SermonModal';
 
+/** Hash e query usados para link direto ao formulário: /#pesquisa ou /?abrir=pesquisa */
+const PESQUISA_HASH = '#pesquisa';
+
 const SermonSeries: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
+  useEffect(() => {
+    const syncFromHash = () => {
+      setModalOpen(typeof window !== 'undefined' && window.location.hash === PESQUISA_HASH);
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('abrir') === 'pesquisa') {
+      params.delete('abrir');
+      const q = params.toString();
+      const path = window.location.pathname;
+      const search = q ? `?${q}` : '';
+      window.history.replaceState(null, '', `${path}${search}${PESQUISA_HASH}`);
+      setModalOpen(true);
+    } else {
+      syncFromHash();
+    }
+
+    window.addEventListener('hashchange', syncFromHash);
+    return () => window.removeEventListener('hashchange', syncFromHash);
+  }, []);
+
+  const openModal = useCallback(() => {
+    setModalOpen(true);
+    if (typeof window !== 'undefined' && window.location.hash !== PESQUISA_HASH) {
+      const { pathname, search } = window.location;
+      window.history.replaceState(null, '', `${pathname}${search}${PESQUISA_HASH}`);
+    }
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setModalOpen(false);
+    if (typeof window !== 'undefined' && window.location.hash === PESQUISA_HASH) {
+      const { pathname, search } = window.location;
+      window.history.replaceState(null, '', `${pathname}${search}`);
+    }
+  }, []);
+
   return (
     <>
-      <section className="py-24 bg-black relative overflow-hidden">
+      <section id="pesquisa" className="py-24 bg-black relative overflow-hidden scroll-mt-24">
         {/* Ambient glow */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/5 rounded-full blur-3xl" />
@@ -96,7 +136,8 @@ const SermonSeries: React.FC = () => {
               </div>
 
               <button
-                onClick={() => setModalOpen(true)}
+                type="button"
+                onClick={openModal}
                 className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-400 text-black font-black text-sm tracking-wider rounded-xl hover:from-orange-400 hover:to-yellow-300 transition-all duration-300 shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-0.5"
               >
                 <MessageCircle size={18} className="group-hover:scale-110 transition-transform" />
@@ -107,7 +148,7 @@ const SermonSeries: React.FC = () => {
         </div>
       </section>
 
-      {modalOpen && <SermonModal onClose={() => setModalOpen(false)} />}
+      {modalOpen && <SermonModal onClose={closeModal} />}
     </>
   );
 };
