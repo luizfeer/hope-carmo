@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import SiteShell from '@/components/SiteShell';
-import RadioPlayer from '@/components/RadioPlayer';
 import './globals.css';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { Toaster } from 'sonner';
+import { SupabaseImplicitHashHandler } from '@/components/auth/SupabaseImplicitHashHandler';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -51,10 +52,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={cn("font-sans", geist.variable)}>
+    <html lang="pt-BR" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body className="min-h-screen bg-black text-white antialiased">
-        <SiteShell>{children}</SiteShell>
-        <RadioPlayer />
+        <TooltipProvider delay={0}>
+          <SupabaseImplicitHashHandler />
+          {children}
+          <Toaster theme="dark" position="top-center" richColors />
+        </TooltipProvider>
       </body>
     </html>
   );

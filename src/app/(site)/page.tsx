@@ -1,7 +1,7 @@
 import Hero from '@/components/Hero';
 import About from '@/components/About';
-import News from '@/components/News';
-import Videos from '@/components/Videos';
+import { NewsSection } from '@/components/cms/NewsSection';
+import { VideosSection } from '@/components/cms/VideosSection';
 import Schedule from '@/components/Schedule';
 import Donations from '@/components/Donations';
 import SermonSeries from '@/components/SermonSeries';
@@ -12,8 +12,8 @@ export default function HomePage() {
       <Hero />
       <SermonSeries />
       <About />
-      <News />
-      <Videos />
+      <NewsSection variant="home" />
+      <VideosSection />
       <Schedule />
       <Donations />
     </>
