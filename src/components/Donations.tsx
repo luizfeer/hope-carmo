@@ -204,7 +204,7 @@ const Donations: React.FC = () => {
       {/* Modal PIX + QR */}
       {pixModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-[max(1rem,var(--radio-player-offset))]"
           role="dialog"
           aria-modal="true"
           aria-labelledby="pix-modal-title"
@@ -215,7 +215,7 @@ const Donations: React.FC = () => {
             aria-label="Fechar"
             onClick={() => setPixModalOpen(false)}
           />
-          <div className="relative w-full max-w-md rounded-2xl border border-orange-500/30 bg-zinc-950 p-6 shadow-2xl animate-modal-in">
+          <div className="relative max-h-[min(90vh,calc(100dvh-var(--radio-player-offset)-2rem))] w-full max-w-md overflow-y-auto rounded-2xl border border-orange-500/30 bg-zinc-950 p-6 shadow-2xl animate-modal-in">
             <button
               type="button"
               onClick={() => setPixModalOpen(false)}

@@ -3,7 +3,7 @@ import Footer from '@/components/Footer';
 
 export default function SiteShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white pb-[var(--radio-player-offset)]">
       <Header />
       {children}
       <Footer />

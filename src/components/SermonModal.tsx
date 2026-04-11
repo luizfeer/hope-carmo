@@ -71,12 +71,12 @@ const SermonModal: React.FC<SermonModalProps> = ({ onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 pb-[max(1rem,var(--radio-player-offset))]"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
 
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-zinc-950 border border-orange-500/30 rounded-2xl shadow-2xl shadow-orange-500/10 animate-modal-in">
+      <div className="relative w-full max-w-2xl max-h-[min(90vh,calc(100dvh-var(--radio-player-offset)-2rem))] overflow-y-auto bg-zinc-950 border border-orange-500/30 rounded-2xl shadow-2xl shadow-orange-500/10 animate-modal-in">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-zinc-950 border-b border-orange-500/20 px-6 py-4 flex items-center justify-between">
           <div>
