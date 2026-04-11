@@ -12,14 +12,19 @@ const Hero: React.FC = () => {
       <div className="absolute inset-0 w-full h-full">
         <video
           autoPlay
-          loop
           muted
           playsInline
+          preload="auto"
           poster="/img/bg.webp"
           className="w-full h-full object-cover opacity-40"
+          onEnded={(e) => {
+            // Loop manual: evita re-request ao CDN a cada ciclo
+            const v = e.currentTarget;
+            v.currentTime = 0;
+            v.play().catch(() => {/* silencia erro de política de autoplay */});
+          }}
           onError={(e) => {
-            // Fallback para imagem se o vídeo falhar
-            const videoElement = e.target as HTMLVideoElement;
+            const videoElement = e.currentTarget;
             videoElement.style.display = 'none';
             const fallbackDiv = videoElement.parentElement;
             if (fallbackDiv) {
