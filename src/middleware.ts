@@ -1,10 +1,14 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const key =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+function getSupabaseEnv() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? '';
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ??
+    '';
+  return { url, key };
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -15,28 +19,52 @@ export async function middleware(request: NextRequest) {
    * Encaminhamos para a rota que faz `exchangeCodeForSession` e redireciona para `next`.
    */
   if (pathname === '/' && searchParams.has('code')) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/auth/callback';
-    if (!url.searchParams.has('next')) {
-      url.searchParams.set('next', '/auth/update-password');
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/auth/callback';
+    if (!redirectUrl.searchParams.has('next')) {
+      redirectUrl.searchParams.set('next', '/auth/update-password');
     }
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  const { url: supabaseUrl, key: supabaseAnonKey } = getSupabaseEnv();
+
+  /** Sem URL/chave o cliente Supabase não pode ser criado (Edge precisa das vars no build/deploy). */
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (!pathname.startsWith('/admin')) {
+      return NextResponse.next({ request });
+    }
+    return new NextResponse(
+      [
+        'Supabase não configurado neste ambiente.',
+        '',
+        'Defina no .env.local ou no painel de deploy:',
+        'NEXT_PUBLIC_SUPABASE_URL',
+        'NEXT_PUBLIC_SUPABASE_ANON_KEY (ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)',
+        '',
+        'https://supabase.com/dashboard/project/_/settings/api',
+      ].join('\n'),
+      {
+        status: 503,
+        headers: { 'content-type': 'text/plain; charset=utf-8' },
+      },
+    );
   }
 
   let supabaseResponse = NextResponse.next({ request });
 
-  const supabase = createServerClient(url, key, {
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value)
+          request.cookies.set(name, value),
         );
         supabaseResponse = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
+          supabaseResponse.cookies.set(name, value, options),
         );
       },
     },

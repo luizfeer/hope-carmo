@@ -1,6 +1,8 @@
 'use client';
 
+import { createContext, useContext } from 'react';
 import type { ComponentPropsWithoutRef } from 'react';
+import { cn } from '@/lib/utils';
 import type { Components } from 'react-markdown';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
@@ -9,8 +11,13 @@ import {
   shouldOpenPesquisaModalSamePage,
   usePesquisaModalOptional,
 } from '@/components/PesquisaModalProvider';
+import { useNewsImageGallery } from '@/components/cms/NewsImageGallery';
 import { parseNewsMarkdown } from '@/lib/parseNewsMarkdown';
 import { parseYoutubeVideoId } from '@/lib/youtube';
+
+const ArticleImageDownloadContext = createContext<string | undefined>(
+  undefined,
+);
 
 const linkClass =
   'font-medium text-pink-300 underline decoration-pink-500/50 underline-offset-4 transition-colors hover:text-pink-200';
@@ -92,19 +99,32 @@ const mdClassName = [
   'prose-table:block prose-table:overflow-x-auto prose-th:border prose-th:border-white/15 prose-th:bg-white/5 prose-th:px-3 prose-th:py-2 prose-td:border prose-td:border-white/10 prose-td:px-3 prose-td:py-2',
 ].join(' ');
 
+function NewsMdImg({ node, ...props }: ComponentPropsWithoutRef<'img'>) {
+  void node;
+  const gallery = useNewsImageGallery();
+  const articleSlug = useContext(ArticleImageDownloadContext);
+  const src = props.src ?? '';
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- URLs dinâmicas do Supabase / externos
+    <img
+      {...props}
+      alt={props.alt ?? ''}
+      className={cn(
+        'my-6 w-full max-w-full rounded-xl border border-white/10 bg-black/20 object-contain shadow-lg',
+        gallery && src && 'cursor-zoom-in transition hover:brightness-105',
+      )}
+      loading="lazy"
+      onClick={
+        gallery && src
+          ? () => gallery.open(src, props.alt ?? '', articleSlug)
+          : undefined
+      }
+    />
+  );
+}
+
 const components: Components = {
-  img: ({ node, ...props }) => {
-    void node;
-    return (
-      // eslint-disable-next-line @next/next/no-img-element -- URLs dinâmicas do Supabase / externos
-      <img
-        {...props}
-        alt={props.alt ?? ''}
-        className="my-6 w-full max-w-full rounded-xl border border-white/10 bg-black/20 object-contain shadow-lg"
-        loading="lazy"
-      />
-    );
-  },
+  img: NewsMdImg,
   a: ({ node, href, children, ...props }) => {
     void node;
     return (
@@ -115,13 +135,23 @@ const components: Components = {
   },
 };
 
-type Props = { content: string; articleTitle?: string };
+type Props = {
+  content: string;
+  articleTitle?: string;
+  /** Prefixo do nome ao baixar com marca (ex.: slug da notícia). */
+  articleSlug?: string;
+};
 
-export function NewsBodyMarkdown({ content, articleTitle = 'Vídeo' }: Props) {
+export function NewsBodyMarkdown({
+  content,
+  articleTitle = 'Vídeo',
+  articleSlug,
+}: Props) {
   const blocks = parseNewsMarkdown(content);
 
   return (
-    <div className="space-y-6">
+    <ArticleImageDownloadContext.Provider value={articleSlug}>
+      <div className="space-y-6">
       {blocks.map((block, i) =>
         block.type === 'video' ? (
           <NewsVideoEmbed key={`v-${i}`} raw={block.raw} title={articleTitle} />
@@ -137,6 +167,7 @@ export function NewsBodyMarkdown({ content, articleTitle = 'Vídeo' }: Props) {
           </div>
         ),
       )}
-    </div>
+      </div>
+    </ArticleImageDownloadContext.Provider>
   );
 }
