@@ -64,6 +64,8 @@ export default async function NewsArticlePage({ params }: Props) {
     ? await getNewsComments(item.id)
     : [];
 
+  const shareUrl = `${SITE_URL}/news/${slug}`;
+
   return (
     <article className="min-h-screen bg-gradient-to-b from-violet-950 to-black pt-28 pb-24">
       <NewsArticleView
@@ -71,6 +73,7 @@ export default async function NewsArticlePage({ params }: Props) {
         slug={slug}
         thumb={thumb}
         comments={comments}
+        shareUrl={shareUrl}
       />
     </article>
   );

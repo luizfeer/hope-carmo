@@ -5,6 +5,7 @@ import { NewsBodyMarkdown } from '@/components/cms/NewsBodyMarkdown';
 import { NewsArticleHeroImage } from '@/components/cms/NewsArticleHeroImage';
 import { NewsImageGalleryProvider } from '@/components/cms/NewsImageGallery';
 import { NewsComments } from '@/components/cms/NewsComments';
+import { NewsArticleShareButton } from '@/components/cms/NewsArticleShareButton';
 import { NEWS_COMMENTS_ENABLED } from '@/lib/feature-flags';
 import type { NewsComment } from '@/types/cms';
 import type { NewsItem } from '@/types/cms';
@@ -14,9 +15,12 @@ type Props = {
   slug: string;
   thumb: string;
   comments: NewsComment[];
+  /** URL absoluta da notícia (partilhas / redes). */
+  shareUrl: string;
 };
 
-export function NewsArticleView({ item, slug, thumb, comments }: Props) {
+export function NewsArticleView({ item, slug, thumb, comments, shareUrl }: Props) {
+  const displayTitle = item.meta_title?.trim() || item.title;
   return (
     <NewsImageGalleryProvider>
       <div className="mx-auto max-w-3xl px-6">
@@ -36,9 +40,12 @@ export function NewsArticleView({ item, slug, thumb, comments }: Props) {
           )}
         </p>
 
-        <h1 className="mb-8 text-4xl font-black leading-tight text-white md:text-5xl">
-          {item.title}
-        </h1>
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <h1 className="min-w-0 flex-1 text-4xl font-black leading-tight text-white md:text-5xl">
+            {item.title}
+          </h1>
+          <NewsArticleShareButton title={displayTitle} url={shareUrl} />
+        </div>
 
         <NewsArticleHeroImage
           src={thumb}
