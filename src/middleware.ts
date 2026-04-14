@@ -46,7 +46,16 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLogin = request.nextUrl.pathname === '/admin/login';
+  /**
+   * Só o painel `/admin` exige sessão + `is_admin`.
+   * O site público (`/`, `/news`, etc.) não passa por aqui com login obrigatório —
+   * outras rotas nem sequer estão no `matcher`.
+   */
+  if (!pathname.startsWith('/admin')) {
+    return supabaseResponse;
+  }
+
+  const isLogin = pathname === '/admin/login';
 
   if (!isLogin) {
     if (!user) {

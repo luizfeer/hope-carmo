@@ -75,9 +75,14 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-t border-orange-500/20 mt-12 pt-8 text-center">
+        <div className="border-t border-orange-500/20 mt-12 pt-8 text-center space-y-2">
           <p className="text-orange-200/60 text-sm">
             © 2024 Hope Carmo - Igreja Presbiteriana Independente. Todos os direitos reservados.
+          </p>
+          <p className="text-orange-200/35 text-xs">
+            <Link href="/admin/login" className="hover:text-orange-200/60 transition-colors">
+              Área da equipa
+            </Link>
           </p>
         </div>
       </div>
