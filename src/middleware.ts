@@ -7,6 +7,22 @@ const key =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export async function middleware(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl;
+
+  /**
+   * PKCE (redefinição de senha, magic link, etc.): se a Site URL no Supabase for só o domínio,
+   * o e-mail abre `/?code=…` em vez de `/auth/callback?code=…` e o código nunca é trocado por sessão.
+   * Encaminhamos para a rota que faz `exchangeCodeForSession` e redireciona para `next`.
+   */
+  if (pathname === '/' && searchParams.has('code')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/callback';
+    if (!url.searchParams.has('next')) {
+      url.searchParams.set('next', '/auth/update-password');
+    }
+    return NextResponse.redirect(url);
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(url, key, {
@@ -68,5 +84,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin', '/admin/:path*', '/admin/login'],
+  matcher: ['/', '/admin', '/admin/:path*', '/admin/login'],
 };

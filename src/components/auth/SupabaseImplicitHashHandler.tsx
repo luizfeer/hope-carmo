@@ -20,6 +20,15 @@ export function SupabaseImplicitHashHandler() {
     if (ran.current) return;
     if (typeof window === 'undefined') return;
 
+    /** PKCE na query: link de e-mail pode abrir `/?code=` (Site URL) em vez de `/auth/callback`. */
+    const q = new URLSearchParams(window.location.search);
+    if (q.has('code') && pathname === '/') {
+      if (!q.has('next')) q.set('next', '/auth/update-password');
+      ran.current = true;
+      router.replace(`/auth/callback?${q.toString()}`);
+      return;
+    }
+
     const raw = window.location.hash.replace(/^#/, '');
     if (!raw.includes('access_token')) return;
 

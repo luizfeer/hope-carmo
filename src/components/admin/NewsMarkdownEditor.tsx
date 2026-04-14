@@ -32,6 +32,7 @@ import {
   Table2,
   Underline as UnderlineIcon,
   Undo2,
+  Video,
 } from 'lucide-react';
 import {
   useCallback,
@@ -60,6 +61,7 @@ import {
   htmlToMarkdownForStorage,
   markdownToHtmlForEditor,
 } from '@/lib/news-editor-md';
+import { NewsVideoExtension } from '@/lib/tiptap-news-video';
 import { moveSelectedImageBlock } from '@/lib/tiptap-move-image';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
@@ -73,6 +75,14 @@ function promptAndSetLink(editor: Editor) {
     return;
   }
   editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+}
+
+function promptAndInsertNewsVideo(editor: Editor) {
+  const url = window.prompt('URL ou ID do vídeo (YouTube):', 'https://');
+  if (url === null) return;
+  const trimmed = url.trim();
+  if (!trimmed) return;
+  editor.chain().focus().insertContent({ type: 'newsVideo', attrs: { src: trimmed } }).run();
 }
 
 function ToolbarButton({
@@ -262,6 +272,13 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled: 
         <Link2 className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
+        title="Vídeo YouTube ([video]…[/video])"
+        disabled={disabled}
+        onClick={() => promptAndInsertNewsVideo(editor)}
+      >
+        <Video className="h-4 w-4" />
+      </ToolbarButton>
+      <ToolbarButton
         title="Tabela 3×3"
         disabled={disabled}
         onClick={() => {
@@ -319,6 +336,7 @@ export function NewsMarkdownEditor({ value, onChange }: Props) {
         autolink: true,
         HTMLAttributes: { class: 'text-amber-300 underline underline-offset-2' },
       }),
+      NewsVideoExtension,
       TiptapImage.configure({
         inline: false,
         allowBase64: false,
@@ -490,8 +508,9 @@ export function NewsMarkdownEditor({ value, onChange }: Props) {
         </Button>
         <span className="text-xs text-zinc-500">
           Links: barra, menu ao selecionar texto ou{' '}
-          <kbd className="rounded bg-zinc-800 px-1">Ctrl+K</kbd>. Imagens:{' '}
-          <code className="rounded bg-zinc-800/80 px-1">media/news/gallery/</code>
+          <kbd className="rounded bg-zinc-800 px-1">Ctrl+K</kbd>. Vídeo: botão ou{' '}
+          <code className="rounded bg-zinc-800/80 px-1">[video]URL YouTube[/video]</code>
+          . Imagens: <code className="rounded bg-zinc-800/80 px-1">media/news/gallery/</code>
         </span>
       </div>
 
@@ -546,7 +565,7 @@ export function NewsMarkdownEditor({ value, onChange }: Props) {
           onChange={(e) => onChange(e.target.value)}
           spellCheck={false}
           className="min-h-[min(70vh,560px)] resize-y border-zinc-700 bg-zinc-950 font-mono text-sm text-zinc-100"
-          placeholder={'# Título\n\nTexto e ![legenda](url)'}
+          placeholder={'# Título\n\nTexto e ![legenda](url)\n\n[video]https://www.youtube.com/watch?v=…[/video]'}
         />
       ) : (
         <div className="relative overflow-hidden rounded-lg border border-zinc-700 bg-zinc-950 ring-1 ring-white/5">

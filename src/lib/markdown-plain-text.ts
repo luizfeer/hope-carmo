@@ -5,6 +5,7 @@ export function markdownToPlainTextSnippet(
 ): string {
   if (!md?.trim()) return '';
   const s = md
+    .replace(/\[video\][\s\S]*?\[\/video\]/gi, ' ')
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/`[^`]*`/g, ' ')
     .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')

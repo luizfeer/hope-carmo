@@ -10,6 +10,8 @@ import { safeNextPath } from '@/lib/auth/safe-redirect';
  * Authentication → URL Configuration → Redirect URLs:
  * - http://localhost:3000/auth/callback
  * - https://seudominio.com/auth/callback
+ *
+ * Se o e-mail abrir `/?code=…` na raiz (Site URL), o middleware redireciona para esta rota.
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);

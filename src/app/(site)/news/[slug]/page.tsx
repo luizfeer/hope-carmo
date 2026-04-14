@@ -84,7 +84,9 @@ export default async function NewsArticlePage({ params }: Props) {
           </p>
         )}
 
-        {item.body?.trim() ? <NewsBodyMarkdown content={item.body} /> : null}
+        {item.body?.trim() ? (
+          <NewsBodyMarkdown content={item.body} articleTitle={item.title} />
+        ) : null}
       </div>
     </article>
   );

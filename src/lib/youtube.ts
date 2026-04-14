@@ -6,10 +6,14 @@ function normalizeVideoId(raw: string | null | undefined): string | null {
   return id && YT_ID.test(id) ? id : null;
 }
 
-/** Extrai o ID do vídeo a partir de URLs comuns do YouTube. */
+/** Extrai o ID do vídeo a partir de URLs comuns do YouTube (ou ID de 11 caracteres colado). */
 export function parseYoutubeVideoId(videoUrl: string): string | null {
+  const trimmed = videoUrl?.trim() ?? '';
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return normalizeVideoId(trimmed);
+  }
   try {
-    const u = new URL(videoUrl.trim());
+    const u = new URL(trimmed);
     const fromQuery = u.searchParams.get('v');
     const q = normalizeVideoId(fromQuery);
     if (q) return q;
