@@ -1,15 +1,22 @@
 /**
- * Compõe a foto com o logo Hope Carmo e gera ficheiro para download (só no browser).
+ * Compõe a foto com o logo Hope Carmo e gera ficheiro no browser (download / partilha).
  */
-export async function downloadImageWithHopeWatermark(
+
+export type WatermarkResult =
+  | { ok: true; blob: Blob; filename: string }
+  | { ok: false; error: string };
+
+export async function composeWatermarkedImage(
   imageUrl: string,
   filenameBase: string,
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<WatermarkResult> {
   if (typeof window === 'undefined') {
     return { ok: false, error: 'Apenas no navegador.' };
   }
 
-  const safeName = filenameBase.replace(/[^\w\-]+/g, '_').slice(0, 80) || 'hope-carmo';
+  const safeName =
+    filenameBase.replace(/[^\w\-]+/g, '_').slice(0, 80) || 'hope-carmo';
+  const filename = `${safeName}-hope-carmo.png`;
   const logoPath = `${window.location.origin}/img/logo-amarelo.webp`;
 
   const loadImg = (src: string, crossOrigin: boolean) =>
@@ -58,17 +65,27 @@ export async function downloadImageWithHopeWatermark(
     );
     if (!blob) return { ok: false, error: 'Não foi possível gerar o ficheiro.' };
 
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${safeName}-hope-carmo.png`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    return { ok: true };
+    return { ok: true, blob, filename };
   } catch {
     return {
       ok: false,
       error:
-        'Não foi possível aplicar a marca (CORS ou formato). Use “Abrir original”.',
+        'Não foi possível preparar a imagem (rede ou formato). Tenta noutro navegador.',
     };
   }
+}
+
+export async function downloadImageWithHopeWatermark(
+  imageUrl: string,
+  filenameBase: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const r = await composeWatermarkedImage(imageUrl, filenameBase);
+  if (!r.ok) return r;
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(r.blob);
+  a.download = r.filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  return { ok: true };
 }

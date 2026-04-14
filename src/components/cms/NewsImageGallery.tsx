@@ -8,9 +8,12 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { Download, ExternalLink, Minus, Plus, X } from 'lucide-react';
+import { Download, Minus, Plus, Share2, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { downloadImageWithHopeWatermark } from '@/lib/news-image-watermark';
+import {
+  composeWatermarkedImage,
+  downloadImageWithHopeWatermark,
+} from '@/lib/news-image-watermark';
 import { Button } from '@/components/ui/button';
 
 type GalleryCtx = {
@@ -103,17 +106,160 @@ function NewsImageLightbox({
     };
   }, [onClose]);
 
+  const baseName = downloadBase ?? 'hope-foto';
+
   async function handleDownload() {
-    const r = await downloadImageWithHopeWatermark(
-      src,
-      downloadBase ?? 'hope-foto',
-    );
+    const r = await downloadImageWithHopeWatermark(src, baseName);
     if (r.ok) {
-      toast.success('Imagem com marca Hope Carmo descarregada.');
+      toast.success('Download concluído.');
     } else {
       toast.error(r.error);
     }
   }
+
+  async function handleShare() {
+    const r = await composeWatermarkedImage(src, baseName);
+    if (!r.ok) {
+      toast.error(r.error);
+      return;
+    }
+
+    const file = new File([r.blob], r.filename, { type: 'image/png' });
+
+    try {
+      if (typeof navigator.share === 'function') {
+        const withFiles =
+          typeof navigator.canShare === 'function' &&
+          navigator.canShare({ files: [file] });
+        if (withFiles) {
+          await navigator.share({
+            files: [file],
+            title: alt || 'Foto',
+            text: alt || undefined,
+          });
+          return;
+        }
+        await navigator.share({
+          title: alt || 'Foto',
+          url: src,
+        });
+        return;
+      }
+      toast.message('Compartilhar não está disponível aqui. Use Baixar.');
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return;
+      toast.error('Não foi possível compartilhar.');
+    }
+  }
+
+  const zoomBar = (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="bg-white/10 text-white hover:bg-white/20"
+        onClick={() => onScaleChange(Math.max(0.5, scale - 0.25))}
+        aria-label="Afastar"
+      >
+        <Minus className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="bg-white/10 text-white hover:bg-white/20"
+        onClick={() => onScaleChange(Math.min(3, scale + 0.25))}
+        aria-label="Aproximar"
+      >
+        <Plus className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="bg-white/10 text-white hover:bg-white/20"
+        onClick={() => onScaleChange(1)}
+      >
+        100%
+      </Button>
+    </div>
+  );
+
+  const desktopActions = (
+    <div className="hidden flex-wrap items-center gap-2 md:flex">
+      <Button
+        type="button"
+        size="sm"
+        className="gap-2 bg-pink-600 text-white hover:bg-pink-500"
+        onClick={() => void handleDownload()}
+      >
+        <Download className="h-4 w-4 shrink-0" />
+        Baixar
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="secondary"
+        className="gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20"
+        onClick={() => void handleShare()}
+      >
+        <Share2 className="h-4 w-4 shrink-0" />
+        Compartilhar
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="text-white hover:bg-white/10"
+        onClick={onClose}
+        aria-label="Fechar"
+      >
+        <X className="h-5 w-5" />
+      </Button>
+    </div>
+  );
+
+  const mobileCloseOnly = (
+    <div className="flex md:hidden">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="text-white hover:bg-white/10"
+        onClick={onClose}
+        aria-label="Fechar"
+      >
+        <X className="h-5 w-5" />
+      </Button>
+    </div>
+  );
+
+  const mobileBottomActions = (
+    <div
+      className="md:hidden shrink-0 border-t border-white/10 bg-black/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+    >
+      <div className="mx-auto flex max-w-lg gap-3">
+        <Button
+          type="button"
+          className="h-12 min-h-12 flex-1 gap-2 rounded-xl bg-pink-600 text-base font-semibold text-white hover:bg-pink-500"
+          onClick={() => void handleDownload()}
+        >
+          <Download className="h-5 w-5 shrink-0" />
+          Baixar
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-12 min-h-12 flex-1 gap-2 rounded-xl border-white/20 bg-white/15 text-base font-semibold text-white hover:bg-white/25"
+          onClick={() => void handleShare()}
+        >
+          <Share2 className="h-5 w-5 shrink-0" />
+          Compartilhar
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -123,71 +269,13 @@ function NewsImageLightbox({
       aria-label="Galeria de imagem"
     >
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="bg-white/10 text-white hover:bg-white/20"
-            onClick={() => onScaleChange(Math.max(0.5, scale - 0.25))}
-            aria-label="Afastar"
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="bg-white/10 text-white hover:bg-white/20"
-            onClick={() => onScaleChange(Math.min(3, scale + 0.25))}
-            aria-label="Aproximar"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="bg-white/10 text-white hover:bg-white/20"
-            onClick={() => onScaleChange(1)}
-          >
-            100%
-          </Button>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <a
-            href={src}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-7 shrink-0 items-center gap-1 rounded-[min(var(--radius-md),12px)] border border-white/20 px-2.5 text-[0.8rem] text-white hover:bg-white/10"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            Abrir original
-          </a>
-          <Button
-            type="button"
-            size="sm"
-            className="gap-2 bg-pink-600 text-white hover:bg-pink-500"
-            onClick={() => void handleDownload()}
-          >
-            <Download className="h-4 w-4" />
-            Baixar com marca Hope Carmo
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/10"
-            onClick={onClose}
-            aria-label="Fechar"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
+        {zoomBar}
+        {desktopActions}
+        {mobileCloseOnly}
       </div>
 
       <div
-        className="min-h-0 flex-1 cursor-zoom-out overflow-auto p-4"
+        className="min-h-0 flex-1 cursor-zoom-out overflow-auto p-4 pb-2 md:pb-4"
         onClick={onClose}
         role="presentation"
       >
@@ -196,7 +284,7 @@ function NewsImageLightbox({
           <img
             src={src}
             alt={alt}
-            className="max-h-[85vh] max-w-full object-contain shadow-2xl"
+            className="max-h-[min(70vh,85vh)] max-w-full object-contain shadow-2xl md:max-h-[85vh]"
             style={{
               transform: `scale(${scale})`,
               transition: 'transform 0.2s ease-out',
@@ -205,6 +293,8 @@ function NewsImageLightbox({
           />
         </div>
       </div>
+
+      {mobileBottomActions}
     </div>
   );
 }
