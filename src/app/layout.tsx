@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body className="min-h-screen bg-black text-white antialiased">
+        <Script
+          src="https://cdn.himetrica.com/tracker.js"
+          data-api-key="hm_14ea9f1aea7a341d01c68a3b7ba7065f64097f6c6e1baeb0"
+          strategy="afterInteractive"
+        />
         <TooltipProvider delay={0}>
           <SupabaseImplicitHashHandler />
           {children}
