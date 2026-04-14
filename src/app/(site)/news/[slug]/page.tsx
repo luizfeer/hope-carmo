@@ -5,6 +5,7 @@ import { notFound, redirect } from 'next/navigation';
 import { NewsBodyMarkdown } from '@/components/cms/NewsBodyMarkdown';
 import { NewsComments } from '@/components/cms/NewsComments';
 import { getNewsBySlug, getNewsComments } from '@/lib/cms/queries';
+import { SITE_URL, absoluteAssetUrl } from '@/lib/site-url';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -17,19 +18,37 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = item.meta_title?.trim() || item.title;
   const description =
     item.meta_description?.trim() || item.excerpt?.trim() || undefined;
+  /** URL absoluta HTTPS — exigida por WhatsApp / Telegram para pré-visualização. */
+  const ogImageUrl = absoluteAssetUrl(item.thumb_url);
+  const pageUrl = `${SITE_URL}/news/${slug}`;
+  const publishedTime = item.published_at
+    ? new Date(item.published_at).toISOString()
+    : undefined;
+
   return {
     title: `${title} | Hope Carmo`,
     description,
+    alternates: { canonical: `/news/${slug}` },
     openGraph: {
       title,
       description,
       type: 'article',
-      url: `https://hopecarmo.com/news/${slug}`,
+      url: pageUrl,
+      siteName: 'Hope Carmo',
+      locale: 'pt_BR',
+      publishedTime,
+      images: [
+        {
+          url: ogImageUrl,
+          alt: title,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [ogImageUrl],
     },
   };
 }

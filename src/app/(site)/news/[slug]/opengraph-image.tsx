@@ -1,18 +1,10 @@
 import { ImageResponse } from 'next/og';
 import { getNewsBySlug } from '@/lib/cms/queries';
+import { SITE_URL, absoluteAssetUrl } from '@/lib/site-url';
 
 export const alt = 'Notícia Hope Carmo';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
-
-const SITE = 'https://hopecarmo.com';
-
-function absoluteImageUrl(url: string | null | undefined): string {
-  const u = url?.trim();
-  if (!u) return `${SITE}/img/bg.webp`;
-  if (u.startsWith('http')) return u;
-  return `${SITE}${u.startsWith('/') ? '' : '/'}${u}`;
-}
 
 function truncateTitle(s: string, max = 110): string {
   const t = s.trim();
@@ -32,8 +24,8 @@ export default async function Image({
     item ? item.meta_title?.trim() || item.title : 'Notícia',
   );
   const thumb = item
-    ? absoluteImageUrl(item.thumb_url)
-    : `${SITE}/img/bg.webp`;
+    ? absoluteAssetUrl(item.thumb_url)
+    : `${SITE_URL}/img/bg.webp`;
 
   return new ImageResponse(
     (
