@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
+import { trackHimetricaPurchaseCompleted } from '@/lib/himetrica-client';
 
 interface SermonModalProps {
   onClose: () => void;
@@ -54,6 +55,7 @@ const SermonModal: React.FC<SermonModalProps> = ({ onClose }) => {
         throw new Error(data.error || `Erro ${res.status}. Tente novamente.`);
       }
 
+      trackHimetricaPurchaseCompleted();
       setStatus('success');
     } catch (err: unknown) {
       setStatus('error');
