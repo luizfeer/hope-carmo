@@ -99,7 +99,10 @@ const mdClassName = [
   'prose-table:block prose-table:overflow-x-auto prose-th:border prose-th:border-white/15 prose-th:bg-white/5 prose-th:px-3 prose-th:py-2 prose-td:border prose-td:border-white/10 prose-td:px-3 prose-td:py-2',
 ].join(' ');
 
-function NewsMdImg({ node, ...props }: ComponentPropsWithoutRef<'img'>) {
+function NewsMdImg({
+  node,
+  ...props
+}: ComponentPropsWithoutRef<'img'> & { node?: unknown }) {
   void node;
   const gallery = useNewsImageGallery();
   const articleSlug = useContext(ArticleImageDownloadContext);

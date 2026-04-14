@@ -23,7 +23,26 @@ const RADIO_SITE = 'https://tenradioten.com/';
 
 const STREAM_URL   = process.env.NEXT_PUBLIC_RADIO_STREAM_URL ?? '';
 const STATION_NAME = 'Rádio Ten';
+const BRAND_NAME   = 'Hope Carmo';
 const POLL_MS      = 15_000;
+
+/** Metadados para o player do sistema / aba (Media Session). */
+function buildMediaArtist(songTitle: string | null): string {
+  const { artist } = parseArtistTitle(songTitle);
+  return artist ? `${artist} · ${BRAND_NAME}` : BRAND_NAME;
+}
+
+function buildMediaTitle(songTitle: string | null): string {
+  const { track } = parseArtistTitle(songTitle);
+  if (track) return track;
+  if (songTitle?.trim()) return songTitle.trim();
+  return STATION_NAME;
+}
+
+function defaultMediaArtworkSrc(): string | null {
+  if (typeof window === 'undefined') return null;
+  return new URL('/img/logo-amarelo.webp', window.location.origin).href;
+}
 
 function parseArtistTitle(title: string | null): { artist: string | null; track: string | null } {
   if (!title) return { artist: null, track: null };
@@ -79,29 +98,35 @@ export default function RadioPlayer() {
   }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Drag-to-close do painel expandido ────────────────────────────────────
-  const dragStartY  = useRef<number>(0);
-  const isDragging  = useRef(false);
-  const [dragY,     setDragY]     = useState(0);
-  const DRAG_CLOSE  = 60; // px necessários para fechar
+  const dragStartY = useRef<number>(0);
+  const dragYRef = useRef(0);
+  const isDragging = useRef(false);
+  const [dragY, setDragY] = useState(0);
+  /** Menos px = mais fácil fechar com um gesto curto. */
+  const DRAG_CLOSE = 48;
 
   const onDragStart = useCallback((e: React.PointerEvent) => {
     isDragging.current = true;
     dragStartY.current = e.clientY;
+    dragYRef.current = 0;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }, []);
 
   const onDragMove = useCallback((e: React.PointerEvent) => {
     if (!isDragging.current) return;
     const dy = Math.max(0, e.clientY - dragStartY.current);
+    dragYRef.current = dy;
     setDragY(dy);
   }, []);
 
   const onDragEnd = useCallback(() => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    if (dragY >= DRAG_CLOSE) setExpanded(false);
+    const d = dragYRef.current;
+    if (d >= DRAG_CLOSE) setExpanded(false);
+    dragYRef.current = 0;
     setDragY(0);
-  }, [dragY]);
+  }, []);
 
   // ── Áudio: cria + autoplay mutado ────────────────────────────────────────
   useEffect(() => {
@@ -255,6 +280,72 @@ export default function RadioPlayer() {
     if (v > 0 && muted) { audioRef.current!.muted = false; setMuted(false); setMutedByAuto(false); }
   }, [muted]);
 
+  // ── Media Session (mini player do SO / aba do navegador) ─────────────────
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator) || !STREAM_URL) return;
+    const ms = navigator.mediaSession;
+
+    const resetHandlers = () => {
+      try {
+        ms.setActionHandler('play', null);
+        ms.setActionHandler('pause', null);
+        ms.setActionHandler('stop', null);
+      } catch { /* alguns navegadores falham ao limpar */ }
+    };
+
+    if (dismissed) {
+      ms.metadata = null;
+      ms.playbackState = 'none';
+      resetHandlers();
+      return;
+    }
+
+    const audio = audioRef.current;
+    if (!audio) {
+      ms.metadata = null;
+      ms.playbackState = 'none';
+      resetHandlers();
+      return;
+    }
+
+    const title = buildMediaTitle(songTitle);
+    const artistLine = buildMediaArtist(songTitle);
+    const album = `${STATION_NAME} · ${BRAND_NAME}`;
+
+    const thumbs: MediaImage[] = [];
+    if (artwork) thumbs.push({ src: artwork, sizes: '512x512' });
+    const fallback = defaultMediaArtworkSrc();
+    if (fallback) thumbs.push({ src: fallback, sizes: '512x512', type: 'image/webp' });
+
+    ms.metadata = new MediaMetadata({
+      title,
+      artist: artistLine,
+      album,
+      artwork: thumbs.length ? thumbs : undefined,
+    });
+    ms.playbackState = playing ? 'playing' : 'paused';
+
+    ms.setActionHandler('play', () => {
+      if (!audio.paused) return;
+      togglePlay();
+    });
+    ms.setActionHandler('pause', () => {
+      if (audio.paused) return;
+      togglePlay();
+    });
+    ms.setActionHandler('stop', () => {
+      ignoreNextAudioErrorRef.current = true;
+      audio.pause();
+      audio.removeAttribute('src');
+    });
+
+    return () => {
+      ms.metadata = null;
+      ms.playbackState = 'none';
+      resetHandlers();
+    };
+  }, [dismissed, playing, songTitle, artwork, togglePlay]);
+
   if (dismissed) return null;
 
   const { artist, track } = parseArtistTitle(muted ? null : songTitle);
@@ -291,10 +382,10 @@ export default function RadioPlayer() {
             {/* ── EXPANDED (Apple Music style) ──────────────────────────── */}
             {expanded && (
               <div
-                className="relative"
+                className="relative flex max-h-[min(85vh,calc(100dvh-5rem))] flex-col"
                 style={{
-                  transform: dragY > 0 ? `translateY(${dragY * 0.4}px)` : undefined,
-                  opacity:   dragY > 0 ? Math.max(0.4, 1 - dragY / 180) : undefined,
+                  transform: dragY > 0 ? `translateY(${dragY * 0.35}px)` : undefined,
+                  opacity: dragY > 0 ? Math.max(0.45, 1 - dragY / 200) : undefined,
                   transition: isDragging.current ? 'none' : 'transform 0.4s ease, opacity 0.4s ease',
                 }}
               >
@@ -313,21 +404,35 @@ export default function RadioPlayer() {
                   <div className="absolute inset-0 bg-black/30" />
                 </div>
 
-                <div className="relative z-10 flex flex-col items-center px-6 pt-5 pb-6 gap-5">
-
-                  {/* Handle — drag para fechar */}
+                {/* Barra fixa: recolher + faixa para arrastar */}
+                <div className="relative z-20 shrink-0 rounded-t-3xl border-b border-white/10 bg-black/35 px-3 pb-2 pt-2 backdrop-blur-md">
+                  <div className="mb-2 flex items-center justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setExpanded(false)}
+                      className="flex shrink-0 items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/90 transition hover:bg-white/20"
+                    >
+                      <ChevronDown size={14} className="opacity-80" aria-hidden />
+                      Recolher
+                    </button>
+                  </div>
                   <div
-                    className="w-full flex justify-center py-1 cursor-grab active:cursor-grabbing touch-none"
+                    className="flex min-h-[48px] w-full cursor-grab touch-pan-y select-none items-center justify-center rounded-xl active:cursor-grabbing"
                     onPointerDown={onDragStart}
                     onPointerMove={onDragMove}
                     onPointerUp={onDragEnd}
                     onPointerCancel={onDragEnd}
                   >
-                    <div className={`
-                      w-9 h-1 rounded-full transition-colors
-                      ${dragY > DRAG_CLOSE ? 'bg-white/60' : 'bg-white/20'}
-                    `} />
+                    <div
+                      className={`
+                        h-1.5 w-14 rounded-full transition-colors
+                        ${dragY > DRAG_CLOSE ? 'bg-orange-400/80' : 'bg-white/35'}
+                      `}
+                    />
                   </div>
+                </div>
+
+                <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center gap-5 overflow-y-auto overscroll-y-contain px-6 py-4 pb-6 [-webkit-overflow-scrolling:touch]">
 
                   {/* Artwork */}
                   <div className={`
