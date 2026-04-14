@@ -1,9 +1,10 @@
 /**
- * URL canónica do site (OG, Twitter, JSON-LD).
- * Defina `NEXT_PUBLIC_SITE_URL` no deploy (ex.: https://hopecarmo.com) sem barra final.
+ * URL canónica do site (OG, Twitter, sitemap, partilhas).
+ * Em produção use `NEXT_PUBLIC_SITE_URL` (ex.: https://hope.ipicarmo.com.br) sem barra final.
  */
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://hopecarmo.com';
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ??
+  'https://hope.ipicarmo.com.br';
 
 /** Garante URL absoluta https para meta tags (WhatsApp, Telegram, etc.). */
 export function absoluteAssetUrl(

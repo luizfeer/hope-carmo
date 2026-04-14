@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { NewsSection } from '@/components/cms/NewsSection';
+import { SITE_URL } from '@/lib/site-url';
 
 export const metadata: Metadata = {
   title: 'Notícias | Hope Carmo',
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     title: 'Notícias | Hope Carmo',
     description:
       'Fique por dentro de eventos, reportagens e novidades do ministério Hope Carmo.',
-    url: 'https://hopecarmo.com/news',
+    url: `${SITE_URL}/news`,
   },
 };
 

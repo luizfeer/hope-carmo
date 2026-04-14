@@ -6,11 +6,12 @@ import { cn } from "@/lib/utils";
 import { Toaster } from 'sonner';
 import { SupabaseImplicitHashHandler } from '@/components/auth/SupabaseImplicitHashHandler';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { SITE_URL } from '@/lib/site-url';
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://hopecarmo.com'),
+  metadataBase: new URL(SITE_URL),
   title: 'Hope Carmo - Farol de Esperança para a Juventude',
   description:
     'Hope Carmo é um ministério dedicado a levar esperança e transformação para a juventude através do amor de Cristo. Descubra nossa missão, eventos e como fazer parte desta comunidade.',
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   openGraph: {
     type: 'website',
-    url: 'https://hopecarmo.com/',
+    url: `${SITE_URL}/`,
     title: 'Hope Carmo - Farol de Esperança para a Juventude',
     description:
       'Hope Carmo é um ministério dedicado a levar esperança e transformação para a juventude através do amor de Cristo.',
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
       'Hope Carmo é um ministério dedicado a levar esperança e transformação para a juventude através do amor de Cristo.',
     images: ['/img/logo-amarelo.webp'],
   },
-  alternates: { canonical: 'https://hopecarmo.com/' },
+  alternates: { canonical: `${SITE_URL}/` },
 };
 
 export const viewport: Viewport = {
