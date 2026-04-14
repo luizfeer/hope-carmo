@@ -446,7 +446,7 @@ export function NewsMarkdownEditor({ value, onChange }: Props) {
       <div className="flex flex-wrap items-center gap-2">
         <input
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,.heic,.heif"
           className="sr-only"
           aria-hidden
           id="news-editor-file"

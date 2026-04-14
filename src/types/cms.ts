@@ -16,6 +16,16 @@ export type NewsItem = {
   updated_at: string;
 };
 
+export type NewsComment = {
+  id: string;
+  news_id: string;
+  user_id: string;
+  body: string;
+  author_name: string;
+  author_avatar_url: string | null;
+  created_at: string;
+};
+
 export type VideoItem = {
   id: string;
   title: string;

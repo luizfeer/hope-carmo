@@ -1,5 +1,5 @@
 import { createPublicClient } from '@/lib/supabase/public';
-import type { NewsItem, VideoItem } from '@/types/cms';
+import type { NewsComment, NewsItem, VideoItem } from '@/types/cms';
 
 export async function getPublishedNews(): Promise<NewsItem[]> {
   const supabase = createPublicClient();
@@ -31,6 +31,23 @@ export async function getNewsBySlug(slug: string): Promise<NewsItem | null> {
     return null;
   }
   return data as NewsItem | null;
+}
+
+export async function getNewsComments(newsId: string): Promise<NewsComment[]> {
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('news_comments')
+    .select(
+      'id, news_id, user_id, body, author_name, author_avatar_url, created_at'
+    )
+    .eq('news_id', newsId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('getNewsComments', error);
+    return [];
+  }
+  return (data ?? []) as NewsComment[];
 }
 
 export async function getPublishedVideos(): Promise<VideoItem[]> {

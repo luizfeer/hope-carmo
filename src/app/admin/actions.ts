@@ -68,13 +68,15 @@ export async function upsertNewsAction(formData: FormData) {
   const file = formData.get('thumb') as File | null;
   if (file && typeof file !== 'string' && file.size > 0) {
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
-      throw new Error('Capa: use JPEG, PNG ou WebP');
+    if (!['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'].includes(ext)) {
+      throw new Error('Capa: use JPEG, PNG, WebP ou HEIC');
     }
     const folder = id || slug;
     const path = `news/${folder}/cover.webp`;
     const raw = Buffer.from(await file.arrayBuffer());
-    const webp = await optimizeImageToWebp(raw, 'cover');
+    const webp = await optimizeImageToWebp(raw, 'cover', {
+      originalFilename: file.name,
+    });
     const { error: upErr } = await supabase.storage
       .from('media')
       .upload(path, webp, { contentType: 'image/webp', upsert: true });
@@ -132,12 +134,14 @@ export async function uploadNewsMarkdownImageAction(
     throw new Error('Imagem demasiado grande (máx. 5 MB)');
   }
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
-  if (!['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
-    throw new Error('Formato não suportado (use JPEG, PNG, WebP ou GIF)');
+  if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'].includes(ext)) {
+    throw new Error('Formato não suportado (JPEG, PNG, WebP, GIF ou HEIC)');
   }
   const path = `news/gallery/${randomUUID()}.webp`;
   const raw = Buffer.from(await file.arrayBuffer());
-  const webp = await optimizeImageToWebp(raw, 'gallery');
+  const webp = await optimizeImageToWebp(raw, 'gallery', {
+    originalFilename: file.name,
+  });
   const { error: upErr } = await supabase.storage
     .from('media')
     .upload(path, webp, { contentType: 'image/webp', upsert: false });
@@ -261,13 +265,15 @@ export async function upsertVideoAction(formData: FormData) {
   const file = formData.get('thumb') as File | null;
   if (file && typeof file !== 'string' && file.size > 0) {
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
-      throw new Error('Thumbnail: use JPEG, PNG ou WebP');
+    if (!['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'].includes(ext)) {
+      throw new Error('Thumbnail: use JPEG, PNG, WebP ou HEIC');
     }
     const folder = id || `new-${Date.now()}`;
     const path = `videos/${folder}/thumb.webp`;
     const raw = Buffer.from(await file.arrayBuffer());
-    const webp = await optimizeImageToWebp(raw, 'thumb');
+    const webp = await optimizeImageToWebp(raw, 'thumb', {
+      originalFilename: file.name,
+    });
     const { error: upErr } = await supabase.storage
       .from('media')
       .upload(path, webp, { contentType: 'image/webp', upsert: true });

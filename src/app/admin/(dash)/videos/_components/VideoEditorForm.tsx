@@ -119,7 +119,12 @@ export function VideoEditorForm({ initial }: Props) {
 
       <div className="space-y-2">
         <Label htmlFor="thumb">Thumbnail (opcional — senão usa o YouTube)</Label>
-        <Input id="thumb" name="thumb" type="file" accept="image/jpeg,image/png,image/webp" />
+        <Input
+          id="thumb"
+          name="thumb"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+        />
         {thumbUrl ? (
           <div className="flex items-start gap-3">
             <div className="relative h-20 w-36 shrink-0 overflow-hidden rounded-md border bg-muted">

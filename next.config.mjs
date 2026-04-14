@@ -7,6 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname),
+  /** WASM/libheif usados por heic-convert no servidor (upload HEIC → WebP). */
+  serverExternalPackages: ['heic-convert', 'heic-decode', 'libheif-js'],
   experimental: {
     /** Default 1 MB — uploads no admin (capa, galeria, thumbnail) precisam de mais espaço antes do WebP. */
     serverActions: {
@@ -24,6 +26,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.supabase.co',
         pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        pathname: '/**',
       },
     ],
   },

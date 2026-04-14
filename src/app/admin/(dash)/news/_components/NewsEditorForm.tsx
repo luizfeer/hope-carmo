@@ -166,7 +166,7 @@ export function NewsEditorForm({ initial }: Props) {
             id="thumb"
             name="thumb"
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
             className="sr-only"
             aria-hidden
             onChange={(ev) => {

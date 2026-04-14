@@ -482,10 +482,10 @@ export default function RadioPlayer() {
                 aria-label={expanded ? 'Recolher player' : 'Expandir player'}
               >
                 {/* Linha principal: ticker quando tiver título */}
-                <div className="relative h-[17px] overflow-hidden">
+                <div className="relative h-5 overflow-hidden">
                   {/* Slot A: título da faixa (ou nome da estação) */}
                   <span className={`
-                    absolute inset-x-0 text-white font-semibold text-[13px] leading-none truncate
+                    absolute inset-x-0 text-white font-semibold text-[13px] leading-tight truncate
                     transition-all duration-500
                     ${tickerAlt ? 'opacity-0 -translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'}
                   `}>
@@ -493,7 +493,7 @@ export default function RadioPlayer() {
                   </span>
                   {/* Slot B: "Ao vivo · Rádio Ten" */}
                   <span className={`
-                    absolute inset-x-0 text-white font-semibold text-[13px] leading-none truncate
+                    absolute inset-x-0 text-white font-semibold text-[13px] leading-tight truncate
                     transition-all duration-500
                     ${tickerAlt ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}
                   `}>
@@ -501,24 +501,31 @@ export default function RadioPlayer() {
                   </span>
                 </div>
 
-                {/* Linha secundária */}
-                <div className="relative h-[14px] mt-1 overflow-hidden">
+                {/* Linha secundária — evitar h fixo demais + leading-none (cortava descendentes) */}
+                <div className="relative mt-1 min-h-[18px] overflow-hidden">
                   {showTitle && artist ? (
-                    <span className="absolute inset-x-0 text-white/40 text-[11px] leading-none truncate">{artist}</span>
+                    <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-white/40 text-[11px] leading-snug truncate">
+                      {artist}
+                    </span>
                   ) : showTitle && track ? (
-                    <span className="absolute inset-x-0 text-white/40 text-[11px] leading-none truncate">{STATION_NAME}</span>
+                    <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-white/40 text-[11px] leading-snug truncate">
+                      {STATION_NAME}
+                    </span>
                   ) : (
-                    <div ref={titleContainerRef} className="absolute inset-x-0 min-w-0 overflow-hidden">
+                    <div
+                      ref={titleContainerRef}
+                      className="absolute inset-x-0 top-0 bottom-0 flex min-w-0 items-center overflow-hidden"
+                    >
                       {songTitle && !muted ? (
                         <span
                           ref={titleTextRef}
-                          className={`inline-block text-white/35 text-[11px] leading-none whitespace-nowrap ${titleScrollPx > 0 ? 'animate-radio-title-marquee' : ''}`}
+                          className={`inline-block text-white/35 text-[11px] leading-snug whitespace-nowrap ${titleScrollPx > 0 ? 'animate-radio-title-marquee' : ''}`}
                           style={{ '--marquee-distance': `${titleScrollPx}px`, '--marquee-duration': `${marqueeDurationSec}s` } as React.CSSProperties}
                         >
                           {songTitle}
                         </span>
                       ) : (
-                        <span className="text-white/30 text-[11px] leading-none">
+                        <span className="text-white/30 text-[11px] leading-snug">
                           {playing ? 'Ao vivo · Gospel' : 'Carmo do Rio Claro'}
                         </span>
                       )}
