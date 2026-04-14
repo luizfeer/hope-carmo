@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { NewsBodyMarkdown } from '@/components/cms/NewsBodyMarkdown';
 import { NewsComments } from '@/components/cms/NewsComments';
+import { NEWS_COMMENTS_ENABLED } from '@/lib/feature-flags';
 import { getNewsBySlug, getNewsComments } from '@/lib/cms/queries';
 import { SITE_URL, absoluteAssetUrl } from '@/lib/site-url';
 
@@ -62,7 +63,9 @@ export default async function NewsArticlePage({ params }: Props) {
   if (ext) redirect(ext);
 
   const thumb = item.thumb_url?.trim() || '/img/bg.webp';
-  const comments = await getNewsComments(item.id);
+  const comments = NEWS_COMMENTS_ENABLED
+    ? await getNewsComments(item.id)
+    : [];
 
   return (
     <article className="min-h-screen bg-gradient-to-b from-violet-950 to-black pt-28 pb-24">
@@ -109,7 +112,9 @@ export default async function NewsArticlePage({ params }: Props) {
           <NewsBodyMarkdown content={item.body} articleTitle={item.title} />
         ) : null}
 
-        <NewsComments newsId={item.id} slug={slug} initialComments={comments} />
+        {NEWS_COMMENTS_ENABLED ? (
+          <NewsComments newsId={item.id} slug={slug} initialComments={comments} />
+        ) : null}
       </div>
     </article>
   );
