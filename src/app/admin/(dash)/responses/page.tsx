@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { Presentation } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminListToolbar } from '@/components/admin/AdminListToolbar';
@@ -84,13 +86,23 @@ export default async function AdminSermonResponsesPage({
   return (
     <div className="space-y-8">
       <div className="border-b border-zinc-600 pb-6">
-        <h1 className="break-words text-3xl font-bold tracking-tight text-white">
-          Respostas do formulário
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-zinc-300">
-          Respostas anónimas enviadas pelo modal da série de sermão (site público). Use busca, filtro
-          por série e ordenação abaixo.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="break-words text-3xl font-bold tracking-tight text-white">
+              Respostas do formulário
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm text-zinc-300">
+              Respostas anónimas enviadas pelo modal da série de sermão (site público). Use busca, filtro
+              por série e ordenação abaixo.
+            </p>
+          </div>
+          <Link
+            href="/admin/apresentar"
+            className="flex shrink-0 items-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-bold text-black transition-all hover:bg-orange-400"
+          >
+            <Presentation size={16} /> Apresentar
+          </Link>
+        </div>
       </div>
 
       <AdminListToolbar
