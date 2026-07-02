@@ -2,11 +2,24 @@ import type { MetadataRoute } from 'next';
 import { getPublishedNews } from '@/lib/cms/queries';
 import { SITE_URL } from '@/lib/site-url';
 
+/**
+ * Gerado em runtime (não no build): assim usa as variáveis do Supabase do
+ * ambiente de produção e não quebra o build quando elas não estão presentes.
+ */
+export const dynamic = 'force-dynamic';
+
 /** Sitemap dinâmico: rotas estáticas + uma entrada por notícia publicada. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const news = (await getPublishedNews()).filter(
-    (n) => !n.external_url?.trim(),
-  );
+  /**
+   * Se o Supabase não estiver configurado (ex.: build/preview sem env),
+   * seguimos só com as rotas estáticas em vez de derrubar a geração.
+   */
+  let news: Awaited<ReturnType<typeof getPublishedNews>> = [];
+  try {
+    news = (await getPublishedNews()).filter((n) => !n.external_url?.trim());
+  } catch (e) {
+    console.error('sitemap: falha ao buscar notícias, usando rotas estáticas', e);
+  }
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
