@@ -167,6 +167,7 @@ const IntensivaoSlider: React.FC<Props> = ({ tabs }) => {
                 fill
                 sizes="(max-width: 768px) 80vw, 60vw"
                 quality={78}
+                unoptimized
                 className={`object-cover transition-all duration-700 ${
                   isActive
                     ? 'grayscale-0 opacity-100 scale-100'
