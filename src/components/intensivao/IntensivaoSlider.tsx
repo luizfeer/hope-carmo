@@ -29,6 +29,7 @@ const IntensivaoSlider: React.FC<Props> = ({ tabs }) => {
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const fotos = validTabs[tabIndex]?.fotos ?? [];
@@ -60,10 +61,13 @@ const IntensivaoSlider: React.FC<Props> = ({ tabs }) => {
   // No mobile, traz a foto ativa para o centro da faixa
   useEffect(() => {
     if (!isMobile) return;
-    itemRefs.current[active]?.scrollIntoView({
+    const track = trackRef.current;
+    const item = itemRefs.current[active];
+    if (!track || !item) return;
+
+    track.scrollTo({
       behavior: 'smooth',
-      inline: 'center',
-      block: 'nearest',
+      left: item.offsetLeft - (track.clientWidth - item.clientWidth) / 2,
     });
   }, [active, isMobile, tabIndex]);
 
@@ -121,6 +125,7 @@ const IntensivaoSlider: React.FC<Props> = ({ tabs }) => {
 
       {/* Acordeão (desktop) / faixa com scroll horizontal (mobile) */}
       <div
+        ref={trackRef}
         className={`flex gap-2 md:gap-2 h-[340px] md:h-[520px] select-none ${
           isMobile
             ? 'overflow-x-auto snap-x snap-mandatory scroll-smooth [scroll-padding-inline:10%] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
