@@ -3,6 +3,7 @@ import type { NewsComment, NewsItem, VideoItem } from '@/types/cms';
 
 export async function getPublishedNews(): Promise<NewsItem[]> {
   const supabase = createPublicClient();
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('news_items')
     .select('*')
@@ -19,6 +20,7 @@ export async function getPublishedNews(): Promise<NewsItem[]> {
 
 export async function getNewsBySlug(slug: string): Promise<NewsItem | null> {
   const supabase = createPublicClient();
+  if (!supabase) return null;
   const { data, error } = await supabase
     .from('news_items')
     .select('*')
@@ -35,6 +37,7 @@ export async function getNewsBySlug(slug: string): Promise<NewsItem | null> {
 
 export async function getNewsComments(newsId: string): Promise<NewsComment[]> {
   const supabase = createPublicClient();
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('news_comments')
     .select(
@@ -52,6 +55,7 @@ export async function getNewsComments(newsId: string): Promise<NewsComment[]> {
 
 export async function getPublishedVideos(): Promise<VideoItem[]> {
   const supabase = createPublicClient();
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('video_items')
     .select('*')
