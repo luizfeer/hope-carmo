@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Heart, CreditCard, QrCode, ArrowUpRight, X, Copy, Check } from 'lucide-react';
+import { Heart, QrCode, ArrowUpRight, X, Copy, Check } from 'lucide-react';
 
 const PIX_KEY = 'pix@ipicarmo.com.br';
 /** Nome do recebedor (máx. 25 caracteres, sem acentos no QR) */
@@ -148,31 +148,18 @@ const Donations: React.FC = () => {
             </button>
           </div>
 
-          {/* Informações de Transferência */}
+          {/* Chave PIX */}
           <div className="bg-white/5 border-t border-white/10 p-8 md:p-12">
-            <h3 className="text-xl font-bold text-white mb-6">Transferência Direta</h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white/5 p-6 rounded-2xl">
-                <div className="flex items-center mb-3">
-                  <QrCode className="h-5 w-5 mr-2 text-orange-400" />
-                  <h4 className="font-semibold text-white">PIX</h4>
-                </div>
-                <p className="text-white/80 font-mono text-sm break-all">{PIX_KEY}</p>
-                <p className="text-white/40 text-xs mt-2">
-                  Toque em um valor acima para gerar o QR Code com a quantia.
-                </p>
+            <h3 className="text-xl font-bold text-white mb-6">Chave PIX</h3>
+            <div className="bg-white/5 p-6 rounded-2xl">
+              <div className="flex items-center mb-3">
+                <QrCode className="h-5 w-5 mr-2 text-orange-400" />
+                <h4 className="font-semibold text-white">PIX · IPI Carmo do Rio Claro</h4>
               </div>
-              <div className="bg-white/5 p-6 rounded-2xl">
-                <div className="flex items-center mb-3">
-                  <CreditCard className="h-5 w-5 mr-2 text-blue-400" />
-                  <h4 className="font-semibold text-white">Transferência</h4>
-                </div>
-                <div className="text-white/80 text-sm space-y-1">
-                  <p>Ag: 1234-5</p>
-                  <p>CC: 12345-6</p>
-                  <p>IPI Carmo do Rio Claro</p>
-                </div>
-              </div>
+              <p className="text-white/80 font-mono text-sm break-all">{PIX_KEY}</p>
+              <p className="text-white/40 text-xs mt-2">
+                Toque em um valor acima para gerar o QR Code com a quantia.
+              </p>
             </div>
           </div>
         </div>

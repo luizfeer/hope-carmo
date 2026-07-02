@@ -12,6 +12,20 @@ body {
   padding: 0;
 }
 
+/* Letreiro contínuo do Intensivão */
+@keyframes intensivao-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-intensivao-marquee {
+  animation: intensivao-marquee 22s linear infinite;
+}
+
 @keyframes modal-in {
   from {
     opacity: 0;

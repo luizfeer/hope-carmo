@@ -4,13 +4,13 @@ import { NewsSection } from '@/components/cms/NewsSection';
 import { VideosSection } from '@/components/cms/VideosSection';
 import Schedule from '@/components/Schedule';
 import Donations from '@/components/Donations';
-import SermonSeries from '@/components/SermonSeries';
+import IntensivaoSection from '@/components/intensivao/IntensivaoSection';
 
 export default function HomePage() {
   return (
     <>
       <Hero />
-      <SermonSeries />
+      <IntensivaoSection />
       <About />
       <NewsSection variant="home" />
       <VideosSection />

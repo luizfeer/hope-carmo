@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-react';
 
 const navItems = [
   { id: 'home', label: 'Home', href: '/' as const },
+  { id: 'intensivao', label: 'Intensivão', href: '/intensivao' as const },
   { id: 'schedule', label: 'Programação', href: '/schedule' as const },
   { id: 'news', label: 'Notícias', href: '/news' as const },
   { id: 'donations', label: 'Apoie', href: '/donations' as const },
@@ -19,7 +20,9 @@ const Header: React.FC = () => {
   const currentPage =
     pathname === '/'
       ? 'home'
-      : pathname.startsWith('/schedule')
+      : pathname.startsWith('/intensivao')
+        ? 'intensivao'
+        : pathname.startsWith('/schedule')
         ? 'schedule'
         : pathname.startsWith('/news')
           ? 'news'

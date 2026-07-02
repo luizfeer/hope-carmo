@@ -57,6 +57,30 @@ export default function RootLayout({
     <html lang="pt-BR" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body className="min-h-screen bg-black text-white antialiased">
         <Script
+          id="ld-org"
+          type="application/ld+json"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Hope Carmo',
+              alternateName: 'Ministério Hope Carmo',
+              url: SITE_URL,
+              logo: `${SITE_URL}/img/logo-amarelo.webp`,
+              description:
+                'Ministério de jovens da IPI de Carmo do Rio Claro — um farol de esperança para a juventude.',
+              sameAs: ['https://instagram.com/hopecarmo'],
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'Carmo do Rio Claro',
+                addressRegion: 'MG',
+                addressCountry: 'BR',
+              },
+            }),
+          }}
+        />
+        <Script
           src="https://cdn.himetrica.com/tracker.js"
           data-api-key="hm_14ea9f1aea7a341d01c68a3b7ba7065f64097f6c6e1baeb0"
           strategy="afterInteractive"
