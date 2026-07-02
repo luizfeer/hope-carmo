@@ -122,7 +122,7 @@ export interface FotoIntensivao {
  * Para adicionar/remover, é só editar esta lista.
  */
 export const FOTOS_2025: FotoIntensivao[] = Array.from({ length: 15 }, (_, i) => ({
-  src: `/img/intensivao/2025/foto-${String(i + 1).padStart(2, '0')}.jpg`,
+  src: `/img/intensivao/2025/foto-${String(i + 1).padStart(2, '0')}.webp`,
   alt: `Intensivão 2025 — foto ${i + 1}`,
 }));
 

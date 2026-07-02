@@ -36,7 +36,7 @@ const SermonSeries: React.FC = () => {
                 {/* Arte da série — next/image otimiza (WebP/AVIF) e reduz peso em relação ao PNG original */}
                 <div className="relative aspect-video w-full bg-black">
                   <Image
-                    src="/img/convictos.PNG"
+                    src="/img/convictos.webp"
                     alt="Convictos — série atual. Toda sexta 20h. Fé que passa pelo fogo. 2 Timóteo 1.12"
                     fill
                     className="object-cover object-center"
