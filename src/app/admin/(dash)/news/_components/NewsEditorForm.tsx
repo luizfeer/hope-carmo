@@ -130,11 +130,11 @@ export function NewsEditorForm({ initial }: Props) {
 
       <div className="space-y-3">
         <div>
-          <Label>Capa</Label>
+          <Label>Capa / imagem de compartilhamento (OG)</Label>
           <p className="text-xs text-muted-foreground">
-            Pré-visualização da imagem usada na listagem e no topo do artigo. Escolha da galeria
-            (imagens já enviadas para o corpo) ou envie um ficheiro novo (gravado como capa no
-            storage).
+            Usada na listagem, no topo do artigo e na prévia do WhatsApp, Facebook, Telegram e X.
+            Ao enviar um arquivo novo, o servidor corrige a orientação, reduz para até 1920 px e
+            converte para WebP comprimido. Prefira imagens horizontais próximas de 1200 × 630 px.
           </p>
         </div>
 
@@ -147,7 +147,7 @@ export function NewsEditorForm({ initial }: Props) {
           {localFilePreview || thumbUrl ? (
             <Image
               src={localFilePreview || thumbUrl!}
-              alt="Pré-visualização da capa"
+              alt="Pré-visualização da capa e imagem OG"
               fill
               className="object-cover"
               sizes="(max-width: 896px) 100vw, 896px"
@@ -155,7 +155,7 @@ export function NewsEditorForm({ initial }: Props) {
             />
           ) : (
             <div className="flex h-full min-h-[140px] items-center justify-center px-4 text-center text-sm text-muted-foreground">
-              Sem capa — escolha da galeria ou envie uma imagem.
+              Sem capa / imagem OG — escolha da galeria ou envie uma imagem.
             </div>
           )}
         </div>
@@ -182,7 +182,7 @@ export function NewsEditorForm({ initial }: Props) {
             size="sm"
             onClick={() => thumbFileRef.current?.click()}
           >
-            Enviar imagem
+            Enviar capa / OG
           </Button>
           <Button
             type="button"
@@ -214,10 +214,10 @@ export function NewsEditorForm({ initial }: Props) {
         <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}>
           <DialogContent className="max-h-[85vh] max-w-3xl overflow-hidden p-0 sm:max-w-3xl">
             <DialogHeader className="border-b px-4 py-3 pr-12">
-              <DialogTitle>Capa a partir da galeria</DialogTitle>
+              <DialogTitle>Capa / imagem OG a partir da galeria</DialogTitle>
               <DialogDescription>
                 Imagens em <code className="rounded bg-muted px-1">media/news/gallery/</code>. Clique
-                numa miniatura para usar como capa (o URL é guardado na notícia).
+                numa miniatura para usá-la como capa e imagem de compartilhamento.
               </DialogDescription>
             </DialogHeader>
             <div className="max-h-[min(60vh,520px)] overflow-y-auto px-4 pb-4">
