@@ -13,8 +13,7 @@
 export const CONVITE_SERIES_PREFIX = 'cartaz-intensivao-2026';
 
 export const CONVITE_LINKS = {
-  /** TODO: troque pelo link real do grupo de WhatsApp do HOPE. */
-  whatsapp: 'https://chat.whatsapp.com/SEU-LINK-AQUI',
+  whatsapp: 'https://chat.whatsapp.com/IZtpxofit3A6nTPCWL7Woz',
   instagram: 'https://instagram.com/hopecarmo',
   intensivao: '/intensivao',
 } as const;
