@@ -1,6 +1,13 @@
 import React from 'react';
 import { anton } from './fonts';
 
+/** Cruz vetorial consistente entre Android, iOS e desktop. */
+export const CrossIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+    <path d="M10 2h4v6h5v4h-5v10h-4V12H5V8h5V2Z" />
+  </svg>
+);
+
 /** Ruído/granulado por cima das seções, como no cartaz. */
 export const Grain: React.FC = () => (
   <div
@@ -59,7 +66,7 @@ export const Marquee: React.FC<{ items: string[] }> = ({ items }) => {
                 style={{ transform: 'skewX(-6deg)' }}
               >
                 {item}
-                <span className="text-red-600/50 pl-12">✝</span>
+                <CrossIcon className="ml-12 inline-block h-[0.72em] w-[0.72em] text-red-600/50" />
               </span>
             ))}
           </div>

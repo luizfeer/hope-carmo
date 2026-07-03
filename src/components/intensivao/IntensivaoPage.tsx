@@ -25,7 +25,7 @@ import {
   icsDataUri,
 } from '@/data/intensivao';
 import { anton, marola } from './fonts';
-import { Grain, BlurTitle, Marquee } from './visuals';
+import { Grain, BlurTitle, CrossIcon, Marquee } from './visuals';
 import IntensivaoSlider from './IntensivaoSlider';
 
 /** Converte link normal do YouTube em link de embed. */
@@ -62,12 +62,7 @@ const IntensivaoPage: React.FC = () => {
         <Grain />
 
         {/* Cruz no canto, como no cartaz */}
-        <span
-          aria-hidden
-          className={`${anton.className} absolute top-24 right-8 md:right-20 text-red-600 text-5xl md:text-7xl blur-[2px] opacity-80`}
-        >
-          ✝
-        </span>
+        <CrossIcon className="absolute top-24 right-8 h-12 w-12 text-red-600 opacity-80 blur-[1px] md:right-20 md:h-16 md:w-16" />
 
         <div className="relative text-center">
           <p className={`${anton.className} text-red-500/80 text-sm md:text-base tracking-[0.5em] uppercase mb-8 blur-[0.5px]`}>
