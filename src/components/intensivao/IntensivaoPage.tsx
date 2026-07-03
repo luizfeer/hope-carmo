@@ -1,6 +1,9 @@
 import React from 'react';
+import Link from 'next/link';
 import {
   ArrowDown,
+  ArrowRight,
+  Images,
   ExternalLink,
   Home,
   Church,
@@ -209,6 +212,17 @@ const IntensivaoPage: React.FC = () => {
           </h2>
 
           <IntensivaoSlider tabs={sliderTabs} />
+
+          <div className="mt-10">
+            <Link
+              href="/intensivao/fotos"
+              className={`${anton.className} group inline-flex items-center gap-3 px-8 py-4 border border-red-600 text-red-500 text-xl uppercase tracking-wide hover:bg-red-600 hover:text-black transition-colors duration-300`}
+            >
+              <Images size={20} />
+              Ver todas as fotos
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
       </section>
 
