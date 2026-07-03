@@ -17,6 +17,17 @@ const Q_LABELS = [
   { key: 'question_3' as const, label: 'O que ajudou a continuar crendo (ou o que ainda procura)' },
 ];
 
+/** Respostas vindas do QR dos cartazes de rua (/convite) têm outras perguntas. */
+const CARTAZ_Q_LABELS = [
+  { key: 'question_1' as const, label: 'O que marcou que está procurando (tela 2)' },
+  { key: 'question_2' as const, label: 'Recado anônimo ("deixa aqui o que você tá procurando")' },
+  { key: 'question_3' as const, label: '—' },
+];
+
+function labelsForSeries(seriesSlug: string | null) {
+  return seriesSlug?.startsWith('cartaz-') ? CARTAZ_Q_LABELS : Q_LABELS;
+}
+
 function formatDate(iso: string) {
   try {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -160,7 +171,7 @@ export default async function AdminSermonResponsesPage({
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-5 bg-zinc-950/80 px-4 py-6 sm:px-6">
-                  {Q_LABELS.map(({ key, label }, index) => {
+                  {labelsForSeries(row.series_slug).map(({ key, label }, index) => {
                     const text = row[key];
                     if (!text?.trim()) return null;
                     return (
