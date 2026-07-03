@@ -1,17 +1,23 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SiteOgImageForm } from '@/components/admin/SiteOgImageForm';
 
 export default async function AdminHomePage() {
   const supabase = await createClient();
-  const [newsRes, videoRes, responseRes] = await Promise.all([
+  const [newsRes, videoRes, responseRes, siteFilesRes] = await Promise.all([
     supabase.from('news_items').select('*', { count: 'exact', head: true }),
     supabase.from('video_items').select('*', { count: 'exact', head: true }),
     supabase.from('sermon_responses').select('*', { count: 'exact', head: true }),
+    supabase.storage.from('media').list('site', { search: 'og.webp' }),
   ]);
   const newsCount = newsRes.count;
   const videoCount = videoRes.count;
   const responseCount = responseRes.error ? null : responseRes.count;
+  const hasSiteOg = siteFilesRes.data?.some((file) => file.name === 'og.webp') ?? false;
+  const {
+    data: { publicUrl: siteOgUrl },
+  } = supabase.storage.from('media').getPublicUrl('site/og.webp');
 
   return (
     <div className="space-y-8">
@@ -58,6 +64,14 @@ export default async function AdminHomePage() {
           </Card>
         </Link>
       </div>
+      <Card className="max-w-4xl border-zinc-700/90 bg-zinc-900/35 ring-1 ring-white/5">
+        <CardHeader>
+          <CardTitle className="text-zinc-100">Compartilhamento do site</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SiteOgImageForm initialUrl={hasSiteOg ? siteOgUrl : null} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

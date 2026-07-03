@@ -50,6 +50,7 @@ async function prepareBufferForSharp(
 export const UPLOAD_MAX_WIDTH = {
   cover: 1920,
   gallery: 1600,
+  og: 1200,
   thumb: 1280,
 } as const;
 
@@ -73,13 +74,21 @@ export async function optimizeImageToWebp(
 
   try {
     const decoded = await prepareBufferForSharp(input, opts?.originalFilename);
-    return await sharp(decoded, { pages: 1 })
-      .rotate()
-      .resize({
-        width: maxWidth,
-        withoutEnlargement: true,
-        fit: 'inside',
-      })
+    const image = sharp(decoded, { pages: 1 }).rotate();
+    const resized =
+      preset === 'og'
+        ? image.resize({
+            width: 1200,
+            height: 630,
+            fit: 'cover',
+            position: 'centre',
+          })
+        : image.resize({
+            width: maxWidth,
+            withoutEnlargement: true,
+            fit: 'inside',
+          });
+    return await resized
       .webp({ quality: WEBP_QUALITY, effort: WEBP_EFFORT })
       .toBuffer();
   } catch (e) {

@@ -36,6 +36,42 @@ export async function signOutAction() {
   redirect('/admin/login');
 }
 
+const MAX_SITE_OG_BYTES = 12 * 1024 * 1024;
+
+export async function uploadSiteOgImageAction(formData: FormData): Promise<string> {
+  const supabase = await requireAdmin();
+  const file = formData.get('site_og') as File | null;
+  if (!file || typeof file === 'string' || file.size === 0) {
+    throw new Error('Selecione uma imagem');
+  }
+  if (file.size > MAX_SITE_OG_BYTES) {
+    throw new Error('A imagem deve ter no máximo 12 MB');
+  }
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  if (!['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'].includes(ext)) {
+    throw new Error('Use JPEG, PNG, WebP ou HEIC');
+  }
+
+  const raw = Buffer.from(await file.arrayBuffer());
+  const webp = await optimizeImageToWebp(raw, 'og', {
+    originalFilename: file.name,
+  });
+  const path = 'site/og.webp';
+  const { error } = await supabase.storage.from('media').upload(path, webp, {
+    contentType: 'image/webp',
+    cacheControl: '0',
+    upsert: true,
+  });
+  if (error) throw new Error(error.message);
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from('media').getPublicUrl(path);
+  revalidatePath('/', 'layout');
+  revalidatePath('/admin');
+  return `${publicUrl}?v=${Date.now()}`;
+}
+
 export async function upsertNewsAction(formData: FormData) {
   const supabase = await requireAdmin();
 
