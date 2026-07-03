@@ -137,7 +137,8 @@ export const FOTOS_2026: FotoIntensivao[] = [];
  * Aceita link normal do YouTube (watch?v=... ou youtu.be/...).
  * null = mostra o placeholder "EM BREVE".
  */
-export const VIDEO_URL: string | null = null;
+export const VIDEO_URL: string | null =
+  'https://www.youtube.com/watch?v=achLvhrC6iA';
 
 export interface MateriaImprensa {
   veiculo: string;
