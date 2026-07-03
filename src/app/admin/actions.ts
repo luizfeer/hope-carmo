@@ -5,7 +5,6 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { slugify } from '@/lib/slug';
-import { optimizeImageToWebp } from '@/lib/optimize-upload-image';
 import { markdownToPlainTextSnippet } from '@/lib/markdown-plain-text';
 import {
   formatYoutubeIsoDuration,
@@ -47,15 +46,11 @@ export async function uploadSiteOgImageAction(formData: FormData): Promise<strin
   if (file.size > MAX_SITE_OG_BYTES) {
     throw new Error('A imagem deve ter no máximo 12 MB');
   }
-  const ext = file.name.split('.').pop()?.toLowerCase() || '';
-  if (!['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'].includes(ext)) {
-    throw new Error('Use JPEG, PNG, WebP ou HEIC');
+  if (file.type !== 'image/webp') {
+    throw new Error('A imagem OG deve ser enviada em WebP');
   }
 
-  const raw = Buffer.from(await file.arrayBuffer());
-  const webp = await optimizeImageToWebp(raw, 'og', {
-    originalFilename: file.name,
-  });
+  const webp = new Uint8Array(await file.arrayBuffer());
   const path = 'site/og.webp';
   const { error } = await supabase.storage.from('media').upload(path, webp, {
     contentType: 'image/webp',
@@ -110,6 +105,7 @@ export async function upsertNewsAction(formData: FormData) {
     const folder = id || slug;
     const path = `news/${folder}/cover.webp`;
     const raw = Buffer.from(await file.arrayBuffer());
+    const { optimizeImageToWebp } = await import('@/lib/optimize-upload-image');
     const webp = await optimizeImageToWebp(raw, 'cover', {
       originalFilename: file.name,
     });
@@ -175,6 +171,7 @@ export async function uploadNewsMarkdownImageAction(
   }
   const path = `news/gallery/${randomUUID()}.webp`;
   const raw = Buffer.from(await file.arrayBuffer());
+  const { optimizeImageToWebp } = await import('@/lib/optimize-upload-image');
   const webp = await optimizeImageToWebp(raw, 'gallery', {
     originalFilename: file.name,
   });
@@ -307,6 +304,7 @@ export async function upsertVideoAction(formData: FormData) {
     const folder = id || `new-${Date.now()}`;
     const path = `videos/${folder}/thumb.webp`;
     const raw = Buffer.from(await file.arrayBuffer());
+    const { optimizeImageToWebp } = await import('@/lib/optimize-upload-image');
     const webp = await optimizeImageToWebp(raw, 'thumb', {
       originalFilename: file.name,
     });

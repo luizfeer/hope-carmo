@@ -12,6 +12,44 @@ type Props = {
   initialUrl: string | null;
 };
 
+async function createOgWebp(file: File): Promise<File> {
+  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+  const width = 1200;
+  const height = 630;
+  const scale = Math.max(width / bitmap.width, height / bitmap.height);
+  const sourceWidth = width / scale;
+  const sourceHeight = height / scale;
+  const sourceX = (bitmap.width - sourceWidth) / 2;
+  const sourceY = (bitmap.height - sourceHeight) / 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    bitmap.close();
+    throw new Error('O navegador não conseguiu processar a imagem');
+  }
+  context.drawImage(
+    bitmap,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    width,
+    height,
+  );
+  bitmap.close();
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, 'image/webp', 0.82),
+  );
+  if (!blob || blob.type !== 'image/webp') {
+    throw new Error('Este navegador não suporta conversão para WebP');
+  }
+  return new File([blob], 'og.webp', { type: 'image/webp' });
+}
+
 export function SiteOgImageForm({ initialUrl }: Props) {
   const [previewUrl, setPreviewUrl] = useState(initialUrl);
   const [pending, setPending] = useState(false);
@@ -26,7 +64,14 @@ export function SiteOgImageForm({ initialUrl }: Props) {
   async function submit(formData: FormData) {
     setPending(true);
     try {
-      const url = await uploadSiteOgImageAction(formData);
+      const source = formData.get('site_og');
+      if (!(source instanceof File) || source.size === 0) {
+        throw new Error('Selecione uma imagem');
+      }
+      const optimized = await createOgWebp(source);
+      const uploadData = new FormData();
+      uploadData.set('site_og', optimized);
+      const url = await uploadSiteOgImageAction(uploadData);
       if (previewUrl?.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(url);
       if (inputRef.current) inputRef.current.value = '';
@@ -71,7 +116,7 @@ export function SiteOgImageForm({ initialUrl }: Props) {
           id="site_og"
           name="site_og"
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+          accept="image/jpeg,image/png,image/webp"
           required
           className="max-w-md border-zinc-700 bg-zinc-950"
           onChange={(event) => {
