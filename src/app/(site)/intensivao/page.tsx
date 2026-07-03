@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import IntensivaoPage from '@/components/intensivao/IntensivaoPage';
-import { SITE_URL } from '@/lib/site-url';
+import { SITE_OG_IMAGE_URL, SITE_URL } from '@/lib/site-url';
 
 export const metadata: Metadata = {
   title: 'Esperança na Cruz — Intensivão | Hope Carmo',
@@ -11,6 +11,15 @@ export const metadata: Metadata = {
     description:
       'Uma semana inteira de férias vivendo esperança: 27/07 a 01/08. Encerramento no Auditório Municipal.',
     url: `${SITE_URL}/intensivao`,
+    images: [
+      {
+        url: SITE_OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        type: 'image/jpeg',
+        alt: 'Hope Carmo — Intensivão',
+      },
+    ],
   },
   alternates: { canonical: `${SITE_URL}/intensivao` },
 };
