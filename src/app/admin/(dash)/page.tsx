@@ -9,15 +9,15 @@ export default async function AdminHomePage() {
     supabase.from('news_items').select('*', { count: 'exact', head: true }),
     supabase.from('video_items').select('*', { count: 'exact', head: true }),
     supabase.from('sermon_responses').select('*', { count: 'exact', head: true }),
-    supabase.storage.from('media').list('site', { search: 'og.webp' }),
+    supabase.storage.from('media').list('site', { search: 'og.jpg' }),
   ]);
   const newsCount = newsRes.count;
   const videoCount = videoRes.count;
   const responseCount = responseRes.error ? null : responseRes.count;
-  const hasSiteOg = siteFilesRes.data?.some((file) => file.name === 'og.webp') ?? false;
+  const hasSiteOg = siteFilesRes.data?.some((file) => file.name === 'og.jpg') ?? false;
   const {
     data: { publicUrl: siteOgUrl },
-  } = supabase.storage.from('media').getPublicUrl('site/og.webp');
+  } = supabase.storage.from('media').getPublicUrl('site/og.jpg');
 
   return (
     <div className="space-y-8">

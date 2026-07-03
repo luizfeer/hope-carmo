@@ -46,14 +46,14 @@ export async function uploadSiteOgImageAction(formData: FormData): Promise<strin
   if (file.size > MAX_SITE_OG_BYTES) {
     throw new Error('A imagem deve ter no máximo 12 MB');
   }
-  if (file.type !== 'image/webp') {
-    throw new Error('A imagem OG deve ser enviada em WebP');
+  if (file.type !== 'image/jpeg') {
+    throw new Error('A imagem OG deve ser enviada em JPEG');
   }
 
-  const webp = new Uint8Array(await file.arrayBuffer());
-  const path = 'site/og.webp';
-  const { error } = await supabase.storage.from('media').upload(path, webp, {
-    contentType: 'image/webp',
+  const jpeg = new Uint8Array(await file.arrayBuffer());
+  const path = 'site/og.jpg';
+  const { error } = await supabase.storage.from('media').upload(path, jpeg, {
+    contentType: 'image/jpeg',
     cacheControl: '0',
     upsert: true,
   });

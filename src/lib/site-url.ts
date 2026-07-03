@@ -10,7 +10,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
 
 /** Imagem de compartilhamento global, gerenciada no dashboard administrativo. */
 export const SITE_OG_IMAGE_URL = SUPABASE_URL
-  ? `${SUPABASE_URL}/storage/v1/object/public/media/site/og.webp`
+  ? `${SUPABASE_URL}/storage/v1/object/public/media/site/og.jpg`
   : `${SITE_URL}/img/logo-amarelo.webp`;
 
 /** Garante URL absoluta https para meta tags (WhatsApp, Telegram, etc.). */

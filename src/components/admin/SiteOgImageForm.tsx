@@ -12,7 +12,7 @@ type Props = {
   initialUrl: string | null;
 };
 
-async function createOgWebp(file: File): Promise<File> {
+async function createOgJpeg(file: File): Promise<File> {
   const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
   const width = 1200;
   const height = 630;
@@ -42,12 +42,12 @@ async function createOgWebp(file: File): Promise<File> {
   );
   bitmap.close();
   const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, 'image/webp', 0.82),
+    canvas.toBlob(resolve, 'image/jpeg', 0.86),
   );
-  if (!blob || blob.type !== 'image/webp') {
-    throw new Error('Este navegador não suporta conversão para WebP');
+  if (!blob || blob.type !== 'image/jpeg') {
+    throw new Error('Este navegador não conseguiu converter a imagem para JPEG');
   }
-  return new File([blob], 'og.webp', { type: 'image/webp' });
+  return new File([blob], 'og.jpg', { type: 'image/jpeg' });
 }
 
 export function SiteOgImageForm({ initialUrl }: Props) {
@@ -68,7 +68,7 @@ export function SiteOgImageForm({ initialUrl }: Props) {
       if (!(source instanceof File) || source.size === 0) {
         throw new Error('Selecione uma imagem');
       }
-      const optimized = await createOgWebp(source);
+      const optimized = await createOgJpeg(source);
       const uploadData = new FormData();
       uploadData.set('site_og', optimized);
       const url = await uploadSiteOgImageAction(uploadData);
@@ -89,7 +89,7 @@ export function SiteOgImageForm({ initialUrl }: Props) {
         <Label htmlFor="site_og">Imagem OG global</Label>
         <p className="text-sm text-zinc-400">
           Prévia padrão do site no WhatsApp, Facebook, Telegram e X. O arquivo é cortado para
-          1200 × 630 e convertido para WebP.
+          1200 × 630 e convertido para JPEG, compatível com WhatsApp.
         </p>
       </div>
 
