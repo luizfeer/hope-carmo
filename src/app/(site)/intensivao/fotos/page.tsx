@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import GaleriaPinterest from '@/components/intensivao/GaleriaPinterest';
+import FotosPageView from '@/components/intensivao/FotosPageView';
 import { GALERIA } from '@/data/intensivao-galeria';
 import { anton } from '@/components/intensivao/fonts';
 import { Grain } from '@/components/intensivao/visuals';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <main className="bg-black text-white min-h-screen">
+      <FotosPageView />
       <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-3xl" />

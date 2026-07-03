@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import {
@@ -27,6 +29,7 @@ import {
 import { anton, marola } from './fonts';
 import { Grain, BlurTitle, CrossIcon, Marquee } from './visuals';
 import IntensivaoSlider from './IntensivaoSlider';
+import { trackIntensivaoFotosVistas, trackIntensivaoVideoVisto } from '@/lib/himetrica-client';
 
 /** Converte link normal do YouTube em link de embed. */
 function toEmbedUrl(url: string): string {
@@ -211,6 +214,7 @@ const IntensivaoPage: React.FC = () => {
           <div className="mt-10">
             <Link
               href="/intensivao/fotos"
+              onClick={() => trackIntensivaoFotosVistas('slider')}
               className={`${anton.className} group inline-flex items-center gap-3 px-8 py-4 border border-red-600 text-red-500 text-xl uppercase tracking-wide hover:bg-red-600 hover:text-black transition-colors duration-300`}
             >
               <Images size={20} />
@@ -242,6 +246,7 @@ const IntensivaoPage: React.FC = () => {
                 title={`Intensivão ${INTENSIVAO.titulo} — vídeo`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
+                onLoad={trackIntensivaoVideoVisto}
                 className="absolute inset-0 w-full h-full"
               />
             </div>

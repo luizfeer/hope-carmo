@@ -15,6 +15,15 @@ import {
 import { VIDEO_URL } from '@/data/intensivao';
 import { anton } from '@/components/intensivao/fonts';
 import { Grain, CrossIcon } from '@/components/intensivao/visuals';
+import {
+  trackConviteChegouPeloTag,
+  trackConviteAberto,
+  trackConviteEscolha,
+  trackConviteVideoVisto,
+  trackConviteFormularioAberto,
+  trackConviteFormularioEnviado,
+  trackConvitePortaClicada,
+} from '@/lib/himetrica-client';
 
 /** Converte link normal do YouTube em link de embed. */
 function toEmbedUrl(url: string): string {
@@ -75,6 +84,13 @@ const ConviteFlow: React.FC = () => {
   const [etapa, setEtapa] = useState<Etapa>('intro');
   const [escolha, setEscolha] = useState<OpcaoBusca | null>(null);
 
+  // Dispara uma vez, ao abrir a página (é o "chegou pelo tag do cartaz").
+  useEffect(() => {
+    trackConviteAberto(ponto);
+    if (ponto) trackConviteChegouPeloTag(ponto);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <main className="relative min-h-[100dvh] bg-black text-white overflow-hidden flex flex-col">
       <Grain />
@@ -88,11 +104,19 @@ const ConviteFlow: React.FC = () => {
         {etapa === 'pergunta' && (
           <TelaPergunta
             escolha={escolha}
-            onEscolha={setEscolha}
+            onEscolha={(o) => {
+              setEscolha(o);
+              trackConviteEscolha(o.label, ponto);
+            }}
             onNext={() => setEtapa('video')}
           />
         )}
-        {etapa === 'video' && <TelaVideo onNext={() => setEtapa('porta')} />}
+        {etapa === 'video' && (
+          <TelaVideo
+            onMount={() => trackConviteVideoVisto(ponto)}
+            onNext={() => setEtapa('porta')}
+          />
+        )}
         {etapa === 'porta' && <TelaPorta escolha={escolha} ponto={ponto} />}
       </div>
 
@@ -177,7 +201,13 @@ const TelaPergunta: React.FC<{
 
 /* ============ TELA 3 — a revelação ============ */
 
-const TelaVideo: React.FC<{ onNext: () => void }> = ({ onNext }) => (
+const TelaVideo: React.FC<{ onMount: () => void; onNext: () => void }> = ({ onMount, onNext }) => {
+  useEffect(() => {
+    onMount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
   <div className="w-full space-y-8 animate-fade-in">
     <p className="text-center text-xl md:text-2xl text-white/90 leading-relaxed">
       {VIDEO_CHAMADA}
@@ -208,7 +238,8 @@ const TelaVideo: React.FC<{ onNext: () => void }> = ({ onNext }) => (
       </button>
     </div>
   </div>
-);
+  );
+};
 
 /* ============ TELA 4 — a porta ============ */
 
@@ -256,6 +287,7 @@ const TelaPorta: React.FC<{ escolha: OpcaoBusca | null; ponto: string | null }> 
         /* não é JSON */
       }
       if (!res.ok || data.error) throw new Error(data.error || `Erro ${res.status}. Tente de novo.`);
+      trackConviteFormularioEnviado(ponto);
       setEnvio('success');
     } catch (err) {
       setEnvio('error');
@@ -273,7 +305,7 @@ const TelaPorta: React.FC<{ escolha: OpcaoBusca | null; ponto: string | null }> 
           De verdade. Alguém vai ler — e ninguém vai saber que foi você.
         </p>
         <p className="text-white/50 text-sm">Se um dia quiser abrir a porta, ela continua aqui:</p>
-        <LinksConhecer />
+        <LinksConhecer ponto={ponto} />
       </div>
     );
   }
@@ -295,7 +327,10 @@ const TelaPorta: React.FC<{ escolha: OpcaoBusca | null; ponto: string | null }> 
               Quero conhecer o HOPE
             </button>
             <button
-              onClick={() => setPorta('anonimo')}
+              onClick={() => {
+                setPorta('anonimo');
+                trackConviteFormularioAberto(ponto);
+              }}
               className="text-white/60 border border-white/15 px-8 py-4 rounded-full hover:border-white/40 hover:text-white transition-colors"
             >
               prefiro ficar anônimo
@@ -307,8 +342,14 @@ const TelaPorta: React.FC<{ escolha: OpcaoBusca | null; ponto: string | null }> 
       {porta === 'conhecer' && (
         <div className="space-y-6 animate-fade-in">
           <p className="text-white/70">Sem catraca, sem cadastro. Escolhe por onde entrar:</p>
-          <LinksConhecer />
-          <button onClick={() => setPorta('anonimo')} className="text-white/40 text-sm underline underline-offset-4 hover:text-white/70">
+          <LinksConhecer ponto={ponto} />
+          <button
+            onClick={() => {
+              setPorta('anonimo');
+              trackConviteFormularioAberto(ponto);
+            }}
+            className="text-white/40 text-sm underline underline-offset-4 hover:text-white/70"
+          >
             prefiro ficar anônimo
           </button>
         </div>
@@ -370,12 +411,13 @@ const TelaPorta: React.FC<{ escolha: OpcaoBusca | null; ponto: string | null }> 
   );
 };
 
-const LinksConhecer: React.FC = () => (
+const LinksConhecer: React.FC<{ ponto: string | null }> = ({ ponto }) => (
   <div className="flex flex-col gap-3 max-w-sm mx-auto">
     <a
       href={CONVITE_LINKS.whatsapp}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => trackConvitePortaClicada('whatsapp', ponto)}
       className="flex items-center justify-between border border-red-600/40 bg-red-600/10 text-white px-6 py-4 rounded-xl hover:bg-red-600/20 transition-colors"
     >
       <span className="font-semibold">Grupo do HOPE no WhatsApp</span>
@@ -385,6 +427,7 @@ const LinksConhecer: React.FC = () => (
       href={CONVITE_LINKS.instagram}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => trackConvitePortaClicada('instagram', ponto)}
       className="flex items-center justify-between border border-white/15 text-white/85 px-6 py-4 rounded-xl hover:border-white/40 transition-colors"
     >
       <span className="flex items-center gap-2">
@@ -394,6 +437,7 @@ const LinksConhecer: React.FC = () => (
     </a>
     <Link
       href={CONVITE_LINKS.intensivao}
+      onClick={() => trackConvitePortaClicada('intensivao', ponto)}
       className="flex items-center justify-between border border-white/15 text-white/85 px-6 py-4 rounded-xl hover:border-white/40 transition-colors"
     >
       <span className="flex items-center gap-2">
