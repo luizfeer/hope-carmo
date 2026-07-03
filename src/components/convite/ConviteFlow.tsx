@@ -34,23 +34,42 @@ function toEmbedUrl(url: string): string {
   return url;
 }
 
-/** Texto "digitando sozinho", caractere a caractere. */
+/**
+ * Texto "digitando sozinho", caractere a caractere.
+ *
+ * Usa requestAnimationFrame + tempo real decorrido (em vez de contar ticks
+ * de setInterval). Isso é essencial no Safari/iOS: quando o navegador atrasa
+ * um frame (comum com blur pesado na tela), um setInterval não recupera o
+ * atraso — cada tick fica na fila atrás do anterior e a digitação parece
+ * cada vez mais lenta. Com rAF baseado em tempo, a contagem de caracteres é
+ * sempre `elapsed / speed`, então o texto "pula" pra se alinhar de novo em
+ * vez de acumular atraso.
+ */
 function useTypewriter(text: string, speed = 42, startDelay = 500) {
   const [count, setCount] = useState(0);
   useEffect(() => {
     setCount(0);
-    let interval: ReturnType<typeof setInterval> | undefined;
-    const timeout = setTimeout(() => {
-      interval = setInterval(() => {
-        setCount((c) => {
-          if (c + 1 >= text.length && interval) clearInterval(interval);
-          return c + 1;
-        });
-      }, speed);
-    }, startDelay);
+    let raf = 0;
+    let start: number | null = null;
+    let cancelled = false;
+
+    const tick = (now: number) => {
+      if (cancelled) return;
+      if (start === null) start = now;
+      const elapsed = now - start - startDelay;
+      if (elapsed < 0) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      const next = Math.min(text.length, Math.floor(elapsed / speed) + 1);
+      setCount(next);
+      if (next < text.length) raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
     return () => {
-      clearTimeout(timeout);
-      if (interval) clearInterval(interval);
+      cancelled = true;
+      cancelAnimationFrame(raf);
     };
   }, [text, speed, startDelay]);
   return { shown: text.slice(0, count), done: count >= text.length };
@@ -94,9 +113,16 @@ const ConviteFlow: React.FC = () => {
   return (
     <main className="relative min-h-[100dvh] bg-black text-white overflow-hidden flex flex-col">
       <Grain />
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] h-[560px] bg-red-600/10 rounded-full blur-3xl" />
-      </div>
+      {/* Glow com radial-gradient em vez de filter:blur — bem mais leve no
+          Safari/iOS, que renderiza filter:blur em software em áreas grandes. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(closest-side, rgba(220,38,38,0.16), rgba(220,38,38,0) 70%)',
+        }}
+      />
       <CrossIcon className="absolute top-6 right-6 h-8 w-8 text-red-600/70 blur-[1px]" />
 
       <div className="relative flex-1 flex flex-col items-center justify-center px-6 py-16 max-w-xl mx-auto w-full">
